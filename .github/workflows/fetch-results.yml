@@ -1,0 +1,99 @@
+# Hit Paydirt NFL League — automatic results fetcher
+#
+# WHEN THIS RUNS (all times UTC; GitHub cron has no timezone)
+#   Sunday evening/night UK  - catches the Sunday afternoon + late slate
+#   Monday early UK          - catches Sunday night football
+#   Tuesday morning UK       - sweep: Monday night football + any corrections
+#   Thursday morning UK      - catches Thursday/Wednesday night games
+#
+# Cron is best-effort. GitHub can delay scheduled jobs at busy times. That's
+# fine: nothing here is time-critical. UK timezone means US late games finish
+# ~4am UK, so the Tuesday sweep has everything well before anyone looks.
+#
+# IF THIS JOB FAILS you get an email from GitHub automatically. That IS the
+# alarm - it means validation caught something wrong and refused to write.
+# Read the log: the error names the exact check that failed.
+#
+# NOTE: GitHub disables scheduled workflows on repos with no activity for 60
+# days. The app also shows a scorer-only staleness banner as a second alarm.
+
+name: Fetch NFL results
+
+on:
+  schedule:
+    # Sunday 22:00 + Monday 01:00, 08:00 UTC (Sun evening/night UK)
+    - cron: '0 22 * * 0'
+    - cron: '0 1 * * 1'
+    - cron: '0 8 * * 1'
+    # Tuesday 08:00 UTC sweep (Monday night football + corrections)
+    - cron: '0 8 * * 2'
+    # Thursday + Friday 08:00 UTC (Thu night football, and the Wed opener)
+    - cron: '0 8 * * 4'
+    - cron: '0 8 * * 5'
+  # Lets Richard trigger a run by hand from the Actions tab.
+  workflow_dispatch:
+    inputs:
+      weeks:
+        description: 'Specific weeks (e.g. "3 4"), or blank for auto'
+        required: false
+        default: ''
+      dry_run:
+        description: 'Dry run (validate only, write nothing)'
+        type: boolean
+        required: false
+        default: false
+
+# Needed so the job can commit the updated data files back to the repo.
+permissions:
+  contents: write
+
+concurrency:
+  group: fetch-results
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Fetch results
+        id: fetch
+        run: |
+          set -euo pipefail
+          ARGS=""
+          if [ -n "${{ github.event.inputs.weeks }}" ]; then
+            ARGS="--weeks ${{ github.event.inputs.weeks }}"
+          else
+            ARGS="--auto"
+          fi
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          echo "Running: python3 scripts/fetch_results.py $ARGS"
+          python3 scripts/fetch_results.py $ARGS
+
+      - name: Commit any changes
+        if: github.event.inputs.dry_run != 'true'
+        run: |
+          set -euo pipefail
+          git config user.name  "hit-paydirt-bot"
+          git config user.email "actions@github.com"
+          if [ -z "$(git status --porcelain data/)" ]; then
+            echo "No data changes to commit."
+            exit 0
+          fi
+          git add data/
+          git commit -m "Update NFL results ($(date -u '+%Y-%m-%d %H:%M UTC'))"
+          # Rebase in case a manual edit landed while this was running.
+          git pull --rebase --autostash origin "${GITHUB_REF_NAME}"
+          git push
+          echo "Committed and pushed."
