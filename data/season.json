@@ -1,0 +1,18 @@
+{
+  "season": 2026,
+  "name": "Hit Paydirt NFL League",
+  "displayName": "NFL 2026",
+  "notes": "Per-game locking: every game locks at its own kickoff. There is NO weekly lock and no lockMode flag - a game is open until it starts. This handles the Wed 9 Sep opener, the Melbourne game, Thanksgiving, Thanksgiving Eve and Christmas Friday with no special cases.",
+  "totalWeeks": 18,
+  "regularSeason": { "start": "2026-09-09", "end": "2027-01-10" },
+  "playoffs": {
+    "wildcard": "2027-01-16",
+    "divisional": "2027-01-23",
+    "conference": "2027-01-31",
+    "superBowl": "2027-02-14",
+    "superBowlVenue": "SoFi Stadium, Inglewood, CA"
+  },
+  "weekFiles": "week-NN.json",
+  "dataSource": "ESPN public scoreboard endpoint (unofficial)",
+  "staleAfterDays": 8
+}
