@@ -1,0 +1,28 @@
+# Guards HAND-EDITS to the data files.
+#
+# The fetcher validates data coming FROM ESPN. This validates data files as
+# committed - so if Richard hand-enters a score and fat-fingers the JSON, it
+# gets caught here rather than silently breaking the app.
+#
+# Runs on every push/PR touching data/. Green tick = fine. Red = read the log.
+
+name: Validate data files
+
+on:
+  push:
+    paths: ['data/**']
+  pull_request:
+    paths: ['data/**']
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate
+        run: python3 scripts/validate_data.py
