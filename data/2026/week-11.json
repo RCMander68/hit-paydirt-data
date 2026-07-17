@@ -1,0 +1,163 @@
+{
+  "week": 11,
+  "season": 2026,
+  "updated": "2026-07-17T10:12:55Z",
+  "games": [
+    {
+      "id": "401873066",
+      "kickoff": "2026-11-20T01:15Z",
+      "home": "HOU",
+      "away": "IND",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "scheduled",
+      "venue": "NRG Stadium",
+      "neutralSite": false,
+      "tbdFlex": false
+    },
+    {
+      "id": "401873067",
+      "kickoff": "2026-11-22T18:00Z",
+      "home": "KC",
+      "away": "ARI",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "scheduled",
+      "venue": "GEHA Field at Arrowhead Stadium",
+      "neutralSite": false,
+      "tbdFlex": false
+    },
+    {
+      "id": "401873068",
+      "kickoff": "2026-11-22T18:00Z",
+      "home": "CAR",
+      "away": "BAL",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "scheduled",
+      "venue": "Bank of America Stadium",
+      "neutralSite": false,
+      "tbdFlex": false
+    },
+    {
+      "id": "401873069",
+      "kickoff": "2026-11-22T18:00Z",
+      "home": "NYG",
+      "away": "JAX",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "scheduled",
+      "venue": "MetLife Stadium",
+      "neutralSite": false,
+      "tbdFlex": false
+    },
+    {
+      "id": "401873070",
+      "kickoff": "2026-11-22T18:00Z",
+      "home": "BUF",
+      "away": "MIA",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "scheduled",
+      "venue": "Highmark Stadium",
+      "neutralSite": false,
+      "tbdFlex": false
+    },
+    {
+      "id": "401873071",
+      "kickoff": "2026-11-22T18:00Z",
+      "home": "CHI",
+      "away": "NO",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "scheduled",
+      "venue": "Soldier Field",
+      "neutralSite": false,
+      "tbdFlex": false
+    },
+    {
+      "id": "401873072",
+      "kickoff": "2026-11-22T18:00Z",
+      "home": "DET",
+      "away": "TB",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "scheduled",
+      "venue": "Ford Field",
+      "neutralSite": false,
+      "tbdFlex": false
+    },
+    {
+      "id": "401873073",
+      "kickoff": "2026-11-22T18:00Z",
+      "home": "DAL",
+      "away": "TEN",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "scheduled",
+      "venue": "AT&T Stadium",
+      "neutralSite": false,
+      "tbdFlex": false
+    },
+    {
+      "id": "401873074",
+      "kickoff": "2026-11-22T21:05Z",
+      "home": "LAC",
+      "away": "NYJ",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "scheduled",
+      "venue": "SoFi Stadium",
+      "neutralSite": false,
+      "tbdFlex": false
+    },
+    {
+      "id": "401873075",
+      "kickoff": "2026-11-22T21:25Z",
+      "home": "DEN",
+      "away": "LV",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "scheduled",
+      "venue": "Empower Field at Mile High",
+      "neutralSite": false,
+      "tbdFlex": false
+    },
+    {
+      "id": "401873076",
+      "kickoff": "2026-11-22T21:25Z",
+      "home": "PHI",
+      "away": "PIT",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "scheduled",
+      "venue": "Lincoln Financial Field",
+      "neutralSite": false,
+      "tbdFlex": false
+    },
+    {
+      "id": "401873077",
+      "kickoff": "2026-11-23T01:20Z",
+      "home": "SF",
+      "away": "MIN",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "scheduled",
+      "venue": "Estadio Banorte",
+      "neutralSite": true,
+      "tbdFlex": false
+    },
+    {
+      "id": "401873078",
+      "kickoff": "2026-11-24T01:15Z",
+      "home": "WSH",
+      "away": "CIN",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "scheduled",
+      "venue": "Northwest Stadium",
+      "neutralSite": false,
+      "tbdFlex": false
+    }
+  ]
+}
