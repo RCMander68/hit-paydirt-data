@@ -894,7 +894,11 @@
     try{
       const info=await claimPlayer(leagueId, playerId);
       await listenLeague();
-      history.replaceState(null,'',location.pathname); // drop the query so it's clean
+      // NOTE: we deliberately KEEP ?lg=&p= in the address bar. That way, if the
+      // player bookmarks the page or adds it to their home screen, the saved
+      // link still carries their identity and always reopens their own entry -
+      // even on a fresh device or an iOS home-screen app with its own storage.
+      // (An earlier version stripped the query, which broke exactly that.)
       saveLocal();
       toast('Welcome, '+(info.name||'player')+'!');
       render();
@@ -920,9 +924,19 @@
     const q=new URLSearchParams(location.search);
     const claimLg=q.get('lg'), claimP=q.get('p');
 
-    // A personal join link takes priority - claim it, on whatever device.
+    // A personal join link. If this device already owns that player (e.g. the
+    // player bookmarked their link and is just reopening), go straight in with
+    // no "Joining..." flash. Otherwise run the claim.
     if(claimLg && claimP){
-      await handleClaimLink(app, claimLg, claimP);
+      const known = memberships.find(m=>m.leagueId===claimLg && m.playerId===claimP);
+      if(known){
+        local={leagueId:claimLg, playerId:claimP, isScorer:known.isScorer};
+        saveLocal();
+        try{ await listenLeague(); }catch(e){ toast(e.message); }
+        render();
+      } else {
+        await handleClaimLink(app, claimLg, claimP);
+      }
       return;
     }
 
