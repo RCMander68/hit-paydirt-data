@@ -239,9 +239,8 @@
   function leagueRef(id){ return db.collection('nfl_leagues').doc(id); }
   function playersCol(id){ return leagueRef(id).collection('players'); }
 
-  async function createLeague(name, scorerName, scorerPass){
+  async function createLeague(name, scorerName){
     await waitForFb();
-    // Collision-safe code generation (audit #12): retry if code already taken.
     let leagueId=null;
     for(let attempt=0; attempt<5; attempt++){
       const candidate=randomId(6);
@@ -249,17 +248,14 @@
       if(!exists.exists){ leagueId=candidate; break; }
     }
     if(!leagueId) throw new Error('Could not allocate a league code, try again.');
-    const playerId=randomId(8);
-    // scorerUid is the ONLY thing that grants scorer power. The passcode is
-    // kept only as an optional human-shareable "claim scorer" secret and is
-    // NOT the security boundary.
     await leagueRef(leagueId).set({
       name, scorerName,
-      scorerUid: myUid,
-      scorerClaim: (scorerPass||'').trim() || null,
+      scorerUid: myUid,          // the only thing that grants scorer power
       createdAt: Date.now(),
       results: blankResults()
     });
+    // The scorer is also player #1 - created already claimed to this device.
+    const playerId=randomId(10);
     await playersCol(leagueId).doc(playerId).set({
       name: scorerName, uid: myUid, pred: blankPred(), joinedAt: Date.now()
     });
@@ -268,23 +264,50 @@
     return leagueId;
   }
 
-  async function joinLeague(id, displayName){
+  // ===== JOIN LINKS (identity model C) =====================================
+  // The SCORER creates a record for each person from Manage Players. Each has
+  // a random 10-char playerId. Their personal link is  ?p=<playerId>. Opening
+  // it "claims" the record to that device (sets uid), and works on ANY device
+  // - so one human is one record across laptop and phone, all season. This is
+  // the fix for the World Cup duplicate bug (same person joining twice).
+  //
+  // The link IS the identity: possession of it means you are that player. Fine
+  // for a bragging-rights league among friends (agreed). Not for money.
+
+  // Scorer adds a player to the roster. Returns the new playerId.
+  async function addPlayer(displayName){
     await waitForFb();
-    id=id.trim().toUpperCase();
-    const existing=memberships.find(m=>m.leagueId===id);
-    if(existing){ local={leagueId:existing.leagueId, playerId:existing.playerId, isScorer:existing.isScorer}; saveLocal(); return id; }
-    const snap=await leagueRef(id).get();
-    if(!snap.exists) throw new Error('No league found with that code.');
-    const data=snap.data();
-    const playerId=randomId(8);
-    await playersCol(id).doc(playerId).set({
-      name: displayName, uid: myUid, pred: blankPred(), joinedAt: Date.now()
+    if(!local.isScorer) throw new Error('Only the scorer can add players');
+    const playerId=randomId(10);
+    await playersCol(local.leagueId).doc(playerId).set({
+      name: displayName.trim(), uid: '', pred: blankPred(), joinedAt: Date.now()
     });
-    // isScorer is derived from uid match, never trusted from localStorage.
-    const isScorer = data.scorerUid === myUid;
-    local={leagueId:id, playerId, isScorer};
-    rememberMembership(id, playerId, isScorer, data.name || id);
-    return id;
+    return playerId;
+  }
+
+  // Build the shareable link for a player.
+  function playerLink(playerId){
+    return location.origin + location.pathname + '?lg=' + local.leagueId + '&p=' + playerId;
+  }
+
+  // Someone opens ?lg=CODE&p=PID - claim that record to this device.
+  async function claimPlayer(leagueId, playerId){
+    await waitForFb();
+    const lref=leagueRef(leagueId);
+    const lsnap=await lref.get();
+    if(!lsnap.exists) throw new Error('That league link is not valid.');
+    const pref=playersCol(leagueId).doc(playerId);
+    const psnap=await pref.get();
+    if(!psnap.exists) throw new Error('That player link is not valid.');
+    const pdata=psnap.data();
+    // Claim: bind this record to the current device unless already ours.
+    if(pdata.uid !== myUid){
+      await pref.update({uid: myUid});   // rules allow: link-holder may claim
+    }
+    const isScorer = lsnap.data().scorerUid === myUid;
+    local={leagueId, playerId, isScorer};
+    rememberMembership(leagueId, playerId, isScorer, lsnap.data().name || leagueId);
+    return {name: pdata.name, leagueName: lsnap.data().name};
   }
 
   async function listenLeague(){
@@ -292,7 +315,6 @@
     if(unsubLeague) unsubLeague();
     if(unsubPlayers) unsubPlayers();
 
-    // Listener 1: the league doc (name, results, scorerUid).
     unsubLeague = leagueRef(local.leagueId).onSnapshot(snap=>{
       if(!snap.exists){ toast('League not found'); return; }
       const data=snap.data();
@@ -301,14 +323,12 @@
       LG.scorerUid = data.scorerUid;
       LG.results = data.results || blankResults();
       LG.players = LG.players || {};
-      // Re-derive scorer status from the authoritative uid, not localStorage.
       local.isScorer = (data.scorerUid === myUid);
       const mem=memberships.find(m=>m.leagueId===local.leagueId);
       if(mem){ mem.name=data.name||mem.name; mem.isScorer=local.isScorer; }
       saveLocal(); render();
     }, ()=>toast('Connection issue'));
 
-    // Listener 2: the players subcollection (picks + names).
     unsubPlayers = playersCol(local.leagueId).onSnapshot(qs=>{
       LG = LG || {};
       LG.players = {};
@@ -321,7 +341,7 @@
     clearTimeout(predTimer);
     predTimer=setTimeout(async()=>{
       try{ await playersCol(local.leagueId).doc(local.playerId).update({pred: myPred()}); }
-      catch(e){ toast('Save failed'); }
+      catch(e){ toast('Save failed — is this your link?'); }
     }, 350);
   }
   function saveResultsSoon(){
@@ -503,14 +523,72 @@
     app.innerHTML='';
     const modebar=document.createElement('div'); modebar.className='modebar';
     const modes=[['predict','🔮 Predict'],['leaderboard','📊 League'],['schedule','📅 Schedule'],['rules','ℹ️ Rules']];
-    if(local.isScorer) modes.splice(2,0,['results','✍️ Results']);
+    if(local.isScorer){ modes.splice(2,0,['results','✍️ Results']); modes.push(['players','👥 Players']); }
     modes.forEach(([k,l])=>{ const c=document.createElement('div'); c.className='chip'+(ui.mode===k?' active':''); c.textContent=l; c.onclick=()=>{ui.mode=k; render();}; modebar.appendChild(c); });
     app.appendChild(modebar);
     if(ui.mode==='predict') renderPredict(app);
     else if(ui.mode==='leaderboard') renderLeaderboard(app);
     else if(ui.mode==='results') renderResults(app);
     else if(ui.mode==='schedule') renderSchedule(app);
+    else if(ui.mode==='players' && local.isScorer) renderManagePlayers(app);
     else renderRules(app);
+  }
+
+  // ===== MANAGE PLAYERS (scorer only) ======================================
+  // Add each of your six by name; the app makes a personal link for each.
+  // Copy the links into WhatsApp. Shows who has opened their link (claimed)
+  // and who hasn't yet.
+  function renderManagePlayers(host){
+    const players=LG.players||{};
+    const ids=Object.keys(players).sort((a,b)=>(players[a].joinedAt||0)-(players[b].joinedAt||0));
+
+    const add=document.createElement('div'); add.className='card';
+    add.innerHTML='<h2>👥 Players & links</h2>'+
+      '<p class="lead">Add each person by name, then send them their personal link. The link works on any device and remembers their picks all season.</p>'+
+      '<div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">'+
+        '<div style="flex:1 1 200px"><label class="fld">Add a player</label><input class="txt" id="newPlayerName" placeholder="e.g. Dave" /></div>'+
+        '<button class="btn btn-green" id="addPlayerBtn" style="flex:0 0 auto">Add & make link</button>'+
+      '</div>';
+    host.appendChild(add);
+
+    const list=document.createElement('div'); list.className='card';
+    let rows='<h2>Your league ('+ids.length+')</h2>';
+    if(!ids.length){ rows+='<p class="lead">No players yet — add your first above.</p>'; }
+    ids.forEach(pid=>{
+      const p=players[pid];
+      const claimed=!!(p.uid && p.uid.length);
+      const isMe=pid===local.playerId;
+      const link=playerLink(pid);
+      rows+='<div class="lbrow" style="align-items:flex-start;flex-wrap:wrap">'+
+        '<div class="rank">'+(claimed?'✅':'⏳')+'</div>'+
+        '<div class="nm" style="flex:1 1 auto">'+esc(p.name)+(isMe?' <small>(you)</small>':'')+
+          '<small>'+(claimed?'link opened — playing':'link not opened yet')+'</small>'+
+          '<input class="txt linkbox" readonly value="'+esc(link)+'" style="font-size:11px;margin-top:6px" data-link="'+esc(link)+'"/>'+
+        '</div>'+
+        '<button class="btn btn-ghost copyLink" data-link="'+esc(link)+'" style="flex:0 0 auto">Copy link</button>'+
+      '</div>';
+    });
+    rows+='<p class="tiny" style="margin-top:10px">✅ = they’ve opened their link and are playing. ⏳ = not opened yet. You can re-send a link any time — it always works.</p>'+
+          '<button class="btn btn-ghost" id="copyAll" style="margin-top:8px">Copy all links (for WhatsApp)</button>';
+    list.innerHTML=rows;
+    host.appendChild(list);
+
+    add.querySelector('#addPlayerBtn').onclick=async()=>{
+      const nm=add.querySelector('#newPlayerName').value.trim();
+      if(!nm){ toast('Enter a name'); return; }
+      try{ await addPlayer(nm); add.querySelector('#newPlayerName').value=''; toast(nm+' added'); }
+      catch(e){ toast(e.message||'Could not add player'); }
+    };
+    add.querySelector('#newPlayerName').addEventListener('keydown',e=>{ if(e.key==='Enter') add.querySelector('#addPlayerBtn').click(); });
+
+    const copy=(text,msg)=>{ (navigator.clipboard?.writeText(text)||Promise.reject()).then(()=>toast(msg||'Copied')).catch(()=>{ toast('Copy not available — long-press the box to copy'); }); };
+    list.querySelectorAll('.copyLink').forEach(b=>b.onclick=()=>copy(b.dataset.link,'Link copied'));
+    list.querySelectorAll('.linkbox').forEach(i=>i.onclick=()=>{ i.select(); });
+    const copyAllBtn=list.querySelector('#copyAll');
+    if(copyAllBtn) copyAllBtn.onclick=()=>{
+      const text=ids.map(pid=>players[pid].name+': '+playerLink(pid)).join('\n');
+      copy(text,'All links copied — paste into WhatsApp');
+    };
   }
 
   // ===== EMPTY STATE =======================================================
@@ -696,20 +774,32 @@
   }
 
   function renderSchedule(host){
-    const c=document.createElement('div'); c.className='card'; c.innerHTML='<h2>Full schedule</h2><p class="lead">The real '+SEASON_YEAR+' schedule. Every game locks at its own kickoff, shown in UK time.</p>';
-    getRegularWeeks().forEach(w=>{
-      const block=document.createElement('div'); block.style.margin='10px 0';
+    const weeks=getRegularWeeks();
+    if(!ui.schedWeek) ui.schedWeek=currentPlayableWeek();
+    if(!weeks.some(w=>w.week===ui.schedWeek)) ui.schedWeek=weeks[0]?.week||1;
+
+    const c=document.createElement('div'); c.className='card';
+    c.innerHTML='<h2>Full schedule</h2><p class="lead">The real '+SEASON_YEAR+' schedule. Every game locks at its own kickoff, shown in UK time.</p>';
+
+    // Week chips - tap to jump, so it isn't one endless list.
+    const bar=document.createElement('div'); bar.className='weekbar';
+    weeks.forEach(w=>{
+      const chip=document.createElement('div');
+      chip.className='chip'+(ui.schedWeek===w.week?' active':'')+(weekLocked(w.week)?' locked':'');
+      chip.textContent='Wk '+w.week;
+      chip.onclick=()=>{ ui.schedWeek=w.week; render(); };
+      bar.appendChild(chip);
+    });
+    c.appendChild(bar);
+
+    const w=weeks.find(x=>x.week===ui.schedWeek);
+    if(w){
       const openN=(w.games||[]).filter(g=>!gameLocked(g)).length;
-      block.innerHTML='<div class="meta"><span>Week '+w.week+'</span><span>'+(openN===0?'all locked':openN+' of '+(w.games||[]).length+' open')+'</span></div>'+
-        w.games.map(g=>'<div class="summary-line" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.12)"><span style="display:flex;align-items:center;gap:6px">'+teamBadge(g.away,22)+'<span class="muted">@</span>'+teamBadge(g.home,22)+'<span style="font-size:12px">'+esc(teamNick(g.away))+' @ '+esc(teamNick(g.home))+'</span>'+(gameMoved(g)?' ⚠️':'')+(g.neutralSite?' 🌍':'')+'</span><span class="muted" style="font-size:11px;white-space:nowrap">'+esc(formatKickoff(g.kickoff))+(gameLocked(g)?' 🔒':'')+'</span></div>').join('');
+      const block=document.createElement('div'); block.style.margin='10px 0 2px';
+      block.innerHTML='<div class="meta"><span><b>Week '+w.week+'</b></span><span>'+(openN===0?'all locked':openN+' of '+(w.games||[]).length+' open')+'</span></div>'+
+        w.games.map(g=>'<div class="summary-line" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed rgba(255,255,255,.12)"><span style="display:flex;align-items:center;gap:6px">'+teamBadge(g.away,24)+'<span class="muted">@</span>'+teamBadge(g.home,24)+'<span style="font-size:13px">'+esc(teamNick(g.away))+' @ '+esc(teamNick(g.home))+'</span>'+(gameMoved(g)?' ⚠️':'')+(g.neutralSite?' 🌍':'')+'</span><span class="muted" style="font-size:11px;white-space:nowrap;text-align:right">'+esc(formatKickoff(g.kickoff))+(gameLocked(g)?' 🔒':'')+'</span></div>').join('');
       c.appendChild(block);
-    });
-    getPlayoffs().forEach(r=>{
-      const block=document.createElement('div'); block.style.margin='10px 0';
-      block.innerHTML='<div class="meta"><span>'+PLAYOFF_LABELS[r.stage]+'</span><span>'+formatDateTime(r.lockTime)+'</span></div>'+
-        r.games.map(g=>'<div class="summary-line" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.12)"><span>'+esc(gameLabel(g))+'</span><span class="muted">'+esc(formatKickoff(g.kickoff))+'</span></div>').join('');
-      c.appendChild(block);
-    });
+    }
     host.appendChild(c);
   }
 
@@ -789,13 +879,30 @@
       const sc=c.querySelector('#newScorer').value.trim();
       if(!nm||!sc){ toast('Fill in both fields'); return; }
       try{
-        await createLeague(nm, sc, '');
+        await createLeague(nm, sc);
         await listenLeague();
         history.replaceState(null,'',location.pathname); // drop ?setup=1
         toast('League created — code '+local.leagueId);
         render();
       }catch(e){ toast(e.message||'Could not create league'); }
     };
+  }
+
+  // Someone opened a personal join link: ?lg=CODE&p=PLAYERID
+  async function handleClaimLink(app, leagueId, playerId){
+    app.innerHTML='<div class="card"><h2>Joining…</h2><p class="lead">Setting up your link on this device.</p></div>';
+    try{
+      const info=await claimPlayer(leagueId, playerId);
+      await listenLeague();
+      history.replaceState(null,'',location.pathname); // drop the query so it's clean
+      saveLocal();
+      toast('Welcome, '+(info.name||'player')+'!');
+      render();
+    }catch(e){
+      app.innerHTML='<div class="card"><h2>That link didn’t work</h2>'+
+        '<p class="lead">'+esc(e.message||'Unknown error')+'</p>'+
+        '<p class="tiny">Ask Richard to re-send your personal link.</p></div>';
+    }
   }
 
   (async function boot(){
@@ -809,9 +916,19 @@
         '<p class="tiny">Technical detail: '+esc(e.message||String(e))+'</p></div>';
       return;
     }
+
+    const q=new URLSearchParams(location.search);
+    const claimLg=q.get('lg'), claimP=q.get('p');
+
+    // A personal join link takes priority - claim it, on whatever device.
+    if(claimLg && claimP){
+      await handleClaimLink(app, claimLg, claimP);
+      return;
+    }
+
     if(local.leagueId){ try{ await listenLeague(); }catch(e){ toast(e.message); } }
 
-    if(new URLSearchParams(location.search).get('setup')==='1' && !local.leagueId){
+    if(q.get('setup')==='1' && !local.leagueId){
       render(); renderSetup(app); return;
     }
     render();
