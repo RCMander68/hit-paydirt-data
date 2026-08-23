@@ -1,1151 +1,952 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<title>Matchday — Premier League Predictions</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<!-- Always fetch the latest app version; never serve a stale cached page.
-     Important for an app that updates often and is shared with many people. -->
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-<meta http-equiv="Pragma" content="no-cache" />
-<meta http-equiv="Expires" content="0" />
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-/* ===== Matchday theme — emerald on navy (sibling to the World Cup app) ===== */
-:root{
-  --navy-950:#0a1020;--navy-900:#0d1530;--navy-850:#111b3d;--navy-800:#16224b;
-  --navy-700:#20305f;--navy-600:#2c3f78;
-  --paper:#f6f5f0;--paper-2:#eceadf;--line:#d7d5c9;--ink:#0d1530;
-  --mist:#9fb0d6;--mist-2:#6f80aa;
-  --emerald:#14e08a;--emerald-2:#0fbf74;--emerald-ink:#04130c;
-  --amber:#ffc94d;--red:#ff5d6c;--red-bg:#2a1320;
-  --radius:16px;--shadow:0 14px 40px rgba(3,8,22,.45);
-}
-*{box-sizing:border-box}
-body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;color:var(--paper);
-  background:radial-gradient(1100px 520px at 50% -8%,#14224d 0%,transparent 62%),var(--navy-950);
-  background-attachment:fixed;line-height:1.45;min-height:100vh;padding-bottom:96px}
-.wrap{max-width:720px;margin:0 auto;padding:22px 16px 40px}
-.masthead{text-align:center;padding:6px 0 4px}
-.eyebrow{display:inline-flex;align-items:center;gap:7px;background:var(--emerald);color:var(--emerald-ink);
-  font-weight:800;font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:6px 14px;border-radius:999px;
-  box-shadow:0 0 0 4px rgba(20,224,138,.14)}
-.masthead h1{margin:14px 0 2px;font-family:Archivo,sans-serif;font-weight:800;font-stretch:75%;
-  text-transform:uppercase;font-size:clamp(34px,9vw,62px);line-height:.92;color:#fff;
-  text-shadow:0 0 22px rgba(120,170,255,.35),0 0 4px rgba(255,255,255,.25)}
-.tagline{color:var(--emerald);font-weight:700;font-size:12px;letter-spacing:.22em;text-transform:uppercase}
-.tagline::before,.tagline::after{content:"·";margin:0 8px;color:var(--mist-2)}
-.league-switch{display:flex;align-items:center;justify-content:center;gap:8px;margin:16px auto 0;width:fit-content;
-  max-width:100%;background:var(--navy-850);border:1px solid var(--navy-700);border-radius:999px;padding:8px 14px;font-size:14px}
-.league-switch .ls-code{color:var(--mist);font-size:12px}
-.league-switch .ls-code b{color:var(--emerald);letter-spacing:.08em}
-.tabs{margin:18px 0 22px;background:var(--navy-900);border:1px solid var(--navy-700);border-radius:var(--radius);
-  padding:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.tab{display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 8px;background:transparent;border:none;
-  border-radius:11px;color:var(--mist);font-family:Inter,sans-serif;font-weight:700;font-size:12.5px;letter-spacing:.05em;
-  text-transform:uppercase;cursor:pointer;transition:background .15s,color .15s}
-.tab:hover{background:var(--navy-800);color:var(--paper)}
-.tab.active{background:var(--emerald);color:var(--emerald-ink);box-shadow:0 0 0 1px rgba(20,224,138,.4),0 6px 16px rgba(20,224,138,.2)}
-.tab:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
-.panel{background:var(--navy-850);border:1px solid var(--navy-700);border-radius:var(--radius);padding:20px;
-  box-shadow:var(--shadow);margin-bottom:18px}
-.panel h2{margin:0 0 4px;font-family:Archivo,sans-serif;font-weight:800;font-stretch:75%;text-transform:uppercase;
-  letter-spacing:.03em;font-size:19px}
-.panel .sub{color:var(--mist);font-size:13px;margin:0 0 16px}
-.banner-locked{display:flex;gap:10px;align-items:flex-start;background:var(--red-bg);border:1px solid #5a2230;
-  border-radius:var(--radius);padding:14px 16px;margin-bottom:18px;color:#ffc2cc;font-size:13.5px;line-height:1.5}
-.banner-locked b{color:#fff}
-.gw-pill{display:flex;align-items:center;justify-content:space-between;background:var(--navy-900);
-  border:1px solid var(--navy-700);border-radius:999px;padding:6px 8px;margin:0 auto 16px;max-width:320px}
-.gw-pill button{width:38px;height:38px;border-radius:999px;border:none;cursor:pointer;background:var(--navy-800);
-  color:var(--paper);font-size:18px;display:grid;place-items:center}
-.gw-pill button:hover:not(:disabled){background:var(--emerald);color:var(--emerald-ink)}
-.gw-pill button:disabled{opacity:.35;cursor:not-allowed}
-.gw-pill .lbl{font-family:Archivo,sans-serif;font-weight:800;font-stretch:75%;text-transform:uppercase;
-  letter-spacing:.04em;font-size:15px}
-.gw-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:4px 2px 12px}
-.gw-head .gw-num{font-family:Archivo,sans-serif;font-weight:800;font-stretch:75%;text-transform:uppercase;
-  font-size:18px;letter-spacing:.04em}
-.gw-head .gw-count{color:var(--mist);font-size:13px}
-.fixture{background:var(--paper);color:var(--ink);border-radius:var(--radius);padding:13px 15px;margin:10px 0;
-  box-shadow:var(--shadow);border:1px solid var(--line)}
-.fixture .kick{display:flex;align-items:center;justify-content:space-between;font-size:11px;letter-spacing:.06em;
-  text-transform:uppercase;color:#6b6c63;margin-bottom:10px}
-.chip{font-weight:800;font-size:10px;letter-spacing:.08em;padding:3px 9px;border-radius:999px;background:var(--paper-2);
-  color:#4a4b44;text-transform:uppercase}
-.chip.open{background:var(--emerald);color:var(--emerald-ink)}
-.chip.locked{background:#f3d6d6;color:#a12020}
-.chip.live{background:#ffe08a;color:#7a5600}
-.faceoff{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px}
-.team{display:flex;align-items:center;gap:9px;min-width:0}
-.team.home{justify-content:flex-start}
-.team.away{justify-content:flex-end;text-align:right}
-.badge{width:30px;height:30px;border-radius:8px;flex:none;display:grid;place-items:center;font-family:Archivo,sans-serif;
-  font-weight:800;font-stretch:75%;font-size:12px;color:#fff;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1)}
-.crest{width:30px;height:30px;flex:none;display:grid;place-items:center}
-.crest img{max-width:30px;max-height:30px;width:auto;height:auto;object-fit:contain;display:block}
-.team .name{font-family:Archivo,sans-serif;font-weight:700;font-stretch:90%;font-size:15px;line-height:1.12;min-width:0;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
-  overflow-wrap:normal;word-break:keep-all;hyphens:none}
-.score{display:flex;align-items:center;gap:6px}
-.score input{width:44px;height:46px;text-align:center;font-family:Archivo,sans-serif;font-weight:800;font-size:21px;
-  font-variant-numeric:tabular-nums;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:10px;-moz-appearance:textfield}
-.score input::-webkit-outer-spin-button,.score input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-.score input:focus{outline:none;border-color:var(--emerald-2);box-shadow:0 0 0 3px rgba(15,191,116,.25)}
-.score input:disabled{background:var(--paper-2);color:#9a9b92;border-style:dashed}
-.score .dash{font-weight:800;color:#b6b7ad}
-.score.result{font-family:Archivo,sans-serif;font-weight:800;font-size:24px;color:var(--ink);gap:8px}
-.score.result .num{min-width:26px;text-align:center}
-.result-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:11px;padding-top:11px;
-  border-top:1px dashed var(--line);font-size:12px;color:#6b6c63}
-.result-row .tag{text-transform:uppercase;letter-spacing:.08em;font-weight:700}
-.result-row .val{font-family:Archivo,sans-serif;font-weight:800;color:var(--ink);font-size:14px;margin-left:5px}
-.result-row .pts{font-family:Archivo,sans-serif;font-weight:800;border-radius:999px;padding:2px 10px;font-size:12px}
-.result-row .pts.p3{background:var(--emerald);color:var(--emerald-ink)}
-.result-row .pts.p1{background:#fff2c2;color:#7a5600}
-.result-row .pts.p0{background:var(--paper-2);color:#8a8b80}
-.result-row .nopick{background:var(--paper-2);color:#8a8b80;border-radius:999px;padding:2px 10px;font-weight:700;
-  font-size:11px;text-transform:uppercase;letter-spacing:.06em}
-.picks h3{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--emerald);margin:18px 0 8px}
-.picks .worth{color:var(--mist-2);font-weight:700;font-size:11px;margin-left:6px}
-.selector-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 12px;
-  border:1px solid var(--navy-700);border-radius:10px;margin:7px 0;background:rgba(255,255,255,.02)}
-.selector-row span{font-size:13px;color:var(--mist);flex:none}
-.selector-row select,.gw-select{flex:1;max-width:62%;padding:10px 11px;font-family:Inter,sans-serif;font-size:14px;
-  color:var(--paper);background:var(--navy-900);border:1px solid var(--navy-700);border-radius:8px;appearance:none;
-  background-image:linear-gradient(45deg,transparent 50%,var(--mist) 50%),linear-gradient(135deg,var(--mist) 50%,transparent 50%);
-  background-position:calc(100% - 16px) 50%,calc(100% - 11px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
-.selector-row select:focus{outline:none;border-color:var(--emerald-2);box-shadow:0 0 0 3px rgba(15,191,116,.2)}
-.table{width:100%;border-collapse:collapse;font-size:14px}
-.table th,.table td{padding:10px 8px;text-align:left}
-.table th{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--mist);border-bottom:1px solid var(--navy-700)}
-.table td{border-bottom:1px solid var(--navy-800)}
-.table td.num,.table th.num{text-align:center;font-variant-numeric:tabular-nums}
-.table tr td.pos{color:var(--mist);width:28px}
-.table .me td{background:rgba(20,224,138,.08)}
-.table .me td:first-child{box-shadow:inset 3px 0 0 var(--emerald)}
-/* GW (current gameweek) column: divider line separating it from the running totals */
-.table .gwcol{border-right:2px solid var(--navy-600)}
-.tbpills{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
-.tbpill{padding:8px 14px;border-radius:999px;border:1px solid var(--navy-700);background:var(--navy-900);
-  color:var(--mist);font-family:Inter,sans-serif;font-weight:700;font-size:13px;cursor:pointer}
-.tbpill.active{background:var(--emerald);color:var(--emerald-ink);border-color:var(--emerald)}
-.tbpill:hover:not(.active){background:var(--navy-800);color:var(--paper)}
-.picks-list{border-top:1px dashed var(--navy-600);margin-top:2px;padding-top:8px}
-.pick-row{display:flex;align-items:center;gap:10px;padding:5px 4px;font-size:14px}
-.pick-row .pk-name{flex:1;color:var(--paper);font-weight:600}
-.pick-row .pk-score{font-variant-numeric:tabular-nums;font-weight:700;color:var(--mist)}
-.pick-row .pk-pts{min-width:22px;text-align:center;border-radius:6px;padding:1px 6px;font-weight:800;font-size:12px}
-.pick-row .pk-3{background:rgba(20,224,138,.2);color:var(--emerald)}
-.pick-row .pk-1{background:rgba(120,150,200,.2);color:var(--mist)}
-.pick-row .pk-0{background:rgba(120,120,140,.12);color:var(--mist-2)}
-.table .lg th.num,.table.lg td.num{padding-left:6px;padding-right:6px}
-@media(max-width:460px){.table .gwcol{font-size:13px}.table th,.table td{padding:9px 5px}}
-.table .proj{color:var(--emerald);font-weight:700}
-.empty{text-align:center;color:var(--mist);padding:30px 10px;font-size:14px}
-.empty .big{font-size:30px;display:block;margin-bottom:8px}
-.dockbar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:10px;align-items:center;
-  padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(180deg,transparent,var(--navy-950) 30%);z-index:20}
-.dockbar .inner{max-width:720px;margin:0 auto;width:100%;display:flex;gap:10px}
-.cog{width:50px;height:50px;flex:none;border-radius:14px;background:var(--navy-800);border:1px solid var(--navy-700);
-  color:var(--paper);font-size:19px;cursor:pointer}
-.refresh{flex:1;height:50px;border:none;border-radius:14px;cursor:pointer;background:var(--emerald);color:var(--emerald-ink);
-  font-family:Inter,sans-serif;font-weight:800;font-size:15px;letter-spacing:.04em;display:flex;align-items:center;
-  justify-content:center;gap:8px;box-shadow:0 8px 22px rgba(20,224,138,.3)}
-.refresh:active{transform:translateY(1px)}
-footer.note{text-align:center;color:var(--mist-2);font-size:12px;margin-top:8px}
-.view{display:none}.view.active{display:block}
-@media(max-width:460px){.tab{font-size:11px;padding:10px 4px}.team .name{font-size:13px}
-  .badge{width:26px;height:26px;font-size:11px}.crest,.crest img{width:26px;height:26px;max-width:26px;max-height:26px}.score input{width:40px;height:42px;font-size:19px}}
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-</style>
-<!-- Firebase (identity + saved picks). Compat build = simplest for a single file. -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Hit Paydirt NFL League</title>
+  <style>
+    :root{--navy:#0a1f3c;--navy2:#102a52;--ink:#06182f;--gold:#f4c430;--gold2:#ffd966;--green:#00c46a;--green-d:#00a058;--red:#e23744;--line:rgba(255,255,255,.12);--shadow:0 10px 30px rgba(0,0,0,.35)}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;padding:0}
+    body{font-family:Inter,Segoe UI,Arial,sans-serif;background:radial-gradient(1200px 600px at 80% -10%,rgba(244,196,48,.16),transparent 60%),radial-gradient(900px 500px at -10% 20%,rgba(0,196,106,.14),transparent 55%),linear-gradient(180deg,var(--navy),var(--ink));background-attachment:fixed;color:#fff;min-height:100vh;overflow-x:hidden}
+    .wrap{max-width:760px;margin:0 auto;padding:14px 14px 110px}
+    header{text-align:center;padding:10px 4px 12px}
+    .badge{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#06182f;background:linear-gradient(180deg,var(--gold2),var(--gold));padding:7px 12px;border-radius:999px;box-shadow:var(--shadow)}
+    h1{margin:12px 0 4px;font-size:clamp(30px,8vw,50px);line-height:.95;text-transform:uppercase}
+    .sub{color:#ffd966;font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:700}
+    .card{background:linear-gradient(180deg,rgba(22,44,82,.92),rgba(13,30,58,.94));border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0;box-shadow:var(--shadow)}
+    .card h2{margin:0 0 6px;font-size:22px;text-transform:uppercase}
+    .lead{margin:0 0 8px;color:#cfe0f8;line-height:1.45;font-size:14px}
+    .tiny{font-size:12px;line-height:1.45;color:#9fb0cc}
+    .modebar,.weekbar{display:flex;gap:8px;overflow:auto;padding:4px 0 10px;scrollbar-width:none}
+    .modebar::-webkit-scrollbar,.weekbar::-webkit-scrollbar{display:none}
+    .chip{flex:0 0 auto;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:#d7e3f5;font-weight:700;cursor:pointer;white-space:nowrap}
+    .chip.active{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#06182f;border-color:transparent}
+    .chip.locked{opacity:.65}
+    .banner{border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.45;margin:6px 0 10px}
+    .banner.open{background:rgba(0,196,106,.12);border:1px solid rgba(0,196,106,.35);color:#b8f5d7}
+    .banner.lock{background:rgba(226,55,68,.12);border:1px solid rgba(226,55,68,.35);color:#ffd1d5}
+    .banner.wait{background:rgba(244,196,48,.1);border:1px solid rgba(244,196,48,.3);color:#ffe8ae}
+    .btn{appearance:none;border:0;cursor:pointer;font-weight:800;border-radius:13px;padding:12px 14px;font-size:14px;width:100%;margin-top:8px}
+    .btn-gold{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#06182f}
+    .btn-green{background:linear-gradient(180deg,#19d97e,var(--green-d));color:#04261a}
+    .btn-ghost{background:rgba(255,255,255,.08);color:#fff;border:1px solid var(--line)}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    label.fld{display:block;margin:12px 0 6px;font-size:12px;color:#ffd966;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+    select,input.txt{width:100%;padding:13px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.25);color:#fff;font-size:15px}
+    .game{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:15px;padding:12px;margin:10px 0}
+    .meta{display:flex;justify-content:space-between;gap:8px;color:#8aa0c2;font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+    .teams{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
+    .team{text-align:center;font-weight:800;font-size:16px}
+    .at{opacity:.7;font-size:12px;text-transform:uppercase;letter-spacing:.1em}
+    .pickerRow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+    .scoreline{display:flex;justify-content:center;gap:8px;align-items:center;font-size:14px;margin-top:8px}
+    .ptpill{display:inline-block;border-radius:7px;padding:2px 8px;font-size:12px;font-weight:800;background:var(--gold);color:#06182f}
+    .ptpill.zero{background:rgba(255,255,255,.16);color:#b7c6df}
+    .ptpill.six{background:var(--green);color:#04261a}
+    .lbrow{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:13px;background:rgba(255,255,255,.04);border:1px solid var(--line);margin:7px 0}
+    .rank{width:28px;text-align:center;font-size:20px;font-weight:900;color:#8aa0c2}
+    .nm{flex:1;font-size:15px;font-weight:700}.nm small{display:block;color:#8aa0c2;font-size:11px;font-weight:600}
+    .sc{font-size:24px;font-weight:900;color:#ffd966}
+    .savebar{position:fixed;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(6,24,47,0),rgba(6,24,47,.96) 28%);padding:10px 14px calc(10px + env(safe-area-inset-bottom));z-index:30}
+    .savebar .inner{max-width:760px;margin:0 auto;display:flex;gap:8px}
+    .toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);z-index:60;background:#06182f;border:1px solid var(--gold);padding:10px 14px;border-radius:12px;display:none}
+    .toast.show{display:block}
+    .overlay{position:fixed;inset:0;background:rgba(3,12,26,.75);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:14px;z-index:80}
+    .hidden{display:none!important}
+    .muted{color:#8aa0c2}
+  /* --- Team badges: colours only, no trademarked marks --- */
+  .tbadge{ display:inline-flex; align-items:center; justify-content:center;
+    border-radius:50%; border:2px solid; font-weight:800; letter-spacing:.02em;
+    color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.55); flex:0 0 auto;
+    box-shadow:0 2px 6px rgba(0,0,0,.35) }
+  .matchup{ display:flex; align-items:center; gap:10px; margin:8px 0 10px }
+  .side{ display:flex; align-items:center; gap:8px; flex:1 1 0; min-width:0 }
+  .side.away{ justify-content:flex-start }
+  .side.home{ justify-content:flex-end; text-align:right }
+  .side .nm{ font-weight:700; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+  .side.win .nm{ color:#19d97e }
+  .side.lose{ opacity:.55 }
+  .vs{ font-size:11px; color:#8fa3c0; font-weight:700; flex:0 0 auto; padding:0 2px }
+  .accent{ height:4px; border-radius:4px 4px 0 0; margin:-12px -12px 8px }
+  .confPill{ display:inline-block; padding:2px 8px; border-radius:999px;
+    font-size:11px; font-weight:800; color:#fff; margin-left:6px }
+  /* --- Step 4 additions --- */
+  .game.is-locked{ opacity:.82 }
+  .movedFlag{ background:#5a3a00; color:#ffd27a; border-radius:6px; padding:1px 6px; font-size:11px; margin-left:4px; white-space:nowrap }
+  .tinyTag{ background:rgba(255,255,255,.10); color:#cfe0ff; border-radius:6px; padding:1px 6px; font-size:11px; margin-left:4px }
+  </style>
 </head>
 <body>
-<main class="wrap">
-  <header class="masthead">
-    <span class="eyebrow">⚽ 2026/27 · Prediction League</span>
-    <h1>Matchday</h1>
-    <div class="tagline">You are the scorer</div>
-  </header>
-
-  <button class="league-switch" type="button">
-    <span>🏆 The Mander Premier League</span>
-    <span class="ls-code">· code <b id="league-code">—</b></span>
-  </button>
-
-  <nav class="tabs" id="tabs" role="tablist">
-    <button class="tab active" data-view="predict"><span>🎯</span>Predict</button>
-    <button class="tab" data-view="season"><span>🔮</span>Season</button>
-    <button class="tab" data-view="league"><span>📊</span>League</button>
-    <button class="tab" data-view="results"><span>✅</span>Results</button>
-    <button class="tab" data-view="today"><span>📅</span>Today</button>
-    <button class="tab" data-view="tables"><span>🏆</span>Tables</button>
-    <button class="tab" data-view="picks"><span>👁️</span>Picks</button>
-    <button class="tab" data-view="help"><span>ℹ️</span>Help</button>
-  </nav>
-
-  <section class="view active" id="view-predict">
-    <div class="gw-pill" id="predict-pill"></div>
-    <div id="predict-body"></div>
-  </section>
-
-  <section class="view" id="view-season">
-    <div class="panel picks" id="season-picks-panel">
-      <h2>Season Picks</h2>
-      <p class="sub">Called before the season. Champion is worth 5; each correct promotion/relegation club is worth 3 (any order).</p>
-      <h3>Champion <span class="worth">5 pts</span></h3>
-      <div class="selector-row"><span>Winner</span><span id="sel-champion"></span></div>
-      <div id="promrel-selectors"></div>
-    </div>
-  </section>
-
-  <section class="view" id="view-league"><div class="panel"><h2>League Table</h2>
-    <p class="sub">Your prediction league — total points, with any live projected season-pick points shown separately.</p>
-    <div id="league-body"></div></div></section>
-
-  <section class="view" id="view-results"><div class="panel"><h2>Results</h2>
-    <p class="sub">Actual scores and how your picks did, week by week.</p>
-    <div class="gw-pill" id="results-pill"></div><div id="results-body"></div>
-    <div class="panel" style="margin-top:18px"><h2 style="font-size:16px">Lower-league tables</h2>
-      <p class="sub">Paste each division's table to settle promotion/relegation (top 3 up, bottom 3 down). PL &amp; Championship update automatically from the feed.</p>
-      <div id="importer-body"></div>
-    </div></div></section>
-
-  <section class="view" id="view-today"><div class="panel"><h2>Today</h2>
-    <p class="sub">Matches kicking off today.</p><div id="today-body"></div></div></section>
-
-  <section class="view" id="view-tables"><div class="panel"><h2 id="tables-title">League Tables</h2>
-    <p class="sub">Live standings — updates a few times a week.</p><div id="tables-body"></div></div></section>
-
-  <section class="view" id="view-picks"><div class="panel"><h2>Everyone's Picks</h2>
-    <p class="sub">Each match unlocks once it kicks off — no peeking before then.</p>
-    <div class="gw-pill" id="picks-pill"></div><div id="picks-body"></div></div></section>
-
-  <section class="view" id="view-help"><div class="panel"><h2>How it works</h2>
-    <div id="help-body"></div></div></section>
-
-  <footer class="note">Each match locks at its own kickoff · data updates a few times a week</footer>
-</main>
-
-<div class="dockbar"><div class="inner">
-  <button class="cog" id="cog" title="Help">⚙️</button>
-  <button class="refresh" id="refresh">🔄 Refresh</button>
-</div></div>
-
-<script>
-"use strict";
-/* =========================================================================
-   Matchday EPL — single-file app.
-   Reads committed JSON (data/*.json). Everything scores off TEAM ID.
-   Locks are PER-GAME (each match at its own kickoff). Weekly 3/1/0.
-   Season picks: champion (5) + promotion/relegation (3 per club, any order).
-   Firebase (identity + saving picks) plugs into the marked stubs.
-   ========================================================================= */
-const APP = { season:null, weeks:[], divisions:null, standings:null, picks:null };
-
-// ---- helpers ------------------------------------------------------------
-const $ = id => document.getElementById(id);
-async function loadJSON(path){ const r = await fetch(path); if(!r.ok) throw new Error(path); return r.json(); }
-function teamCode(name){
-  const skip=new Set(["and","&","hove","albion","city","united","town","wanderers","athletic","rovers","hotspur","afc"]);
-  const w=(name||"").replace(/&/g,"and").split(/\s+/).filter(Boolean);
-  const core=w.filter(x=>!skip.has(x.toLowerCase())); const p=core.length?core:w;
-  return (p.length>=2?(p[0][0]+p[1][0]+(p[1][1]||"")):p[0]?.slice(0,3)||"?").toUpperCase();
-}
-function teamColor(name){let h=0;for(let i=0;i<(name||"").length;i++)h=(h*31+name.charCodeAt(i))%360;return `hsl(${h},55%,38%)`;}
-// Real crest when the feed provides one (PL + Championship); coloured letter-tile
-// otherwise (lower leagues, or if the image fails to load).
-function badge(name, crest){
-  const tile = `<span class="badge" style="background:${teamColor(name)}">${teamCode(name)}</span>`;
-  if(crest){
-    return `<span class="crest"><img src="${crest}" alt="${teamCode(name)}" loading="lazy"
-      onerror="this.parentNode.outerHTML=this.dataset.fallback" data-fallback='${tile.replace(/'/g,"&#39;")}'></span>`;
-  }
-  return tile;
-}
-
-// Short, unambiguous club names for mobile (the "Man Utd vs Man City" fix).
-// Feed names arrive like "Manchester United FC" — we strip a trailing FC/AFC,
-// apply the well-known conventional short names, then fall back to a generic
-// rule (drop common suffixes) so every club fits on one line on a phone.
-const SHORT_NAMES = {
-  "manchester united":"Man Utd", "manchester city":"Man City",
-  "tottenham hotspur":"Spurs", "nottingham forest":"Nott'm Forest",
-  "wolverhampton wanderers":"Wolves", "brighton & hove albion":"Brighton",
-  "west ham united":"West Ham", "newcastle united":"Newcastle",
-  "leeds united":"Leeds", "sheffield united":"Sheff Utd",
-  "sheffield wednesday":"Sheff Wed", "west bromwich albion":"West Brom",
-  "queens park rangers":"QPR", "afc bournemouth":"B'mouth", "bournemouth":"B'mouth",
-  "crystal palace":"Crystal Palace", "aston villa":"Aston Villa",
-  "milton keynes dons":"MK Dons", "milton keynes":"MK Dons", "mkdons":"MK Dons", "afc wimbledon":"AFC Wimbledon",
-  "peterborough united":"Peterborough", "doncaster rovers":"Doncaster",
-  "huddersfield town":"Huddersfield", "charlton athletic":"Charlton",
-  "plymouth argyle":"Plymouth", "bristol rovers":"Bristol Rovers",
-  "bristol city":"Bristol City", "cambridge united":"Cambridge",
-  "colchester united":"Colchester", "accrington stanley":"Accrington",
-};
-function shortName(name){
-  if(!name) return "";
-  // strip a trailing " FC" or " AFC" the feed adds (keep leading "AFC ...")
-  let n = name.replace(/\s+F\.?C\.?$/i,"").replace(/\s+A\.?F\.?C\.?$/i,"").trim();
-  const key = n.toLowerCase();
-  if(SHORT_NAMES[key]) return SHORT_NAMES[key];
-  // generic fallback: drop trailing filler words if the name is long
-  if(n.length>13){
-    n = n.replace(/\s+(Football Club|United|City|Town|Wanderers|Athletic|Rovers|Albion|County|Hotspur)$/i,"").trim();
-  }
-  return n;
-}
-function ko(iso){return new Date(iso).toLocaleString("en-GB",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});}
-function matchLocked(m){ return new Date(m.kickoffUtc) <= new Date(); }   // PER-GAME lock
-function played(m){ return m.score && m.score.h!=null && m.score.a!=null; }
-function result(h,a){ return h>a?"H":h<a?"A":"D"; }
-
-// ---- weekly scoring: 3 exact / 1 correct result / 0 wrong ---------------
-function scorePick(pick, actual){
-  if(!pick || pick.h==null || pick.a==null || !actual || actual.h==null) return null;
-  if(pick.h===actual.h && pick.a===actual.a) return 3;
-  if(result(pick.h,pick.a)===result(actual.h,actual.a)) return 1;
-  return 0;
-}
-
-// ---- current gameweek = the earliest week with any unlocked match -------
-function currentWeek(){
-  for(const wk of APP.weeks){ if(wk.fixtures.some(m=>!matchLocked(m))) return wk; }
-  return APP.weeks[APP.weeks.length-1] || null;
-}
-// ---- most recently LOCKED gameweek: the latest week whose first match has
-// kicked off. Shows GW5 from GW5 kickoff until GW6 kickoff. Before any week
-// locks (pre-season), falls back to GW1 so the column always has a header.
-function lockedWeek(){
-  let locked = null;
-  for(const wk of APP.weeks){
-    const anyLocked = wk.fixtures.some(m=>matchLocked(m));
-    if(anyLocked) locked = wk; else break;
-  }
-  return locked || APP.weeks.find(w=>w.gameweek===1) || APP.weeks[0] || null;
-}
-
-// ===== PREDICT ============================================================
-function fixtureCard(m){
-  const locked = matchLocked(m);
-  const live = locked && !played(m);
-  const chip = played(m) ? '<span class="chip locked">Final</span>'
-             : live ? '<span class="chip live">Locked</span>'
-             : '<span class="chip open">Open</span>';
-  const saved = (APP.picks?.weekly?.[curWeekKey]||{})[m.fixtureId] || {};
-  const val = k => saved[k]!=null ? `value="${saved[k]}"` : "";
-  return `<article class="fixture" data-fx="${m.fixtureId}">
-    <div class="kick"><span>${ko(m.kickoffUtc)}</span>${chip}</div>
-    <div class="faceoff">
-      <div class="team home">${badge(m.home.name, m.home.crest)}<span class="name">${shortName(m.home.name)}</span></div>
-      <div class="score">
-        <input type="number" min="0" inputmode="numeric" data-side="h" ${val("h")} aria-label="${m.home.name} score" ${locked?"disabled":""}>
-        <span class="dash">–</span>
-        <input type="number" min="0" inputmode="numeric" data-side="a" ${val("a")} aria-label="${m.away.name} score" ${locked?"disabled":""}>
-      </div>
-      <div class="team away"><span class="name">${shortName(m.away.name)}</span>${badge(m.away.name, m.away.crest)}</div>
-    </div></article>`;
-}
-let curWeekKey = "gw1";
-let predictIdx = -1;   // -1 means "not yet initialised → default to current week"
-function renderPredict(idx){
-  if(!APP.weeks.length){ $("predict-body").innerHTML=`<div class="empty"><span class="big">📭</span>No fixtures loaded yet.</div>`; return; }
-  // default to the current gameweek on first open
-  if(idx===undefined){
-    if(predictIdx<0){ const cur=currentWeek(); predictIdx=Math.max(0,APP.weeks.indexOf(cur)); }
-    idx = predictIdx;
-  }
-  predictIdx = Math.min(Math.max(idx,0),APP.weeks.length-1);
-  pill($("predict-pill"),predictIdx,renderPredict);
-  const wk = APP.weeks[predictIdx];
-  curWeekKey = "gw"+wk.gameweek;
-  const openCount = wk.fixtures.filter(m=>!matchLocked(m)).length;
-  $("predict-body").innerHTML = `
-    <div class="gw-head"><span class="gw-num">Gameweek ${wk.gameweek}</span>
-      <span class="gw-count">${openCount} of ${wk.fixtures.length} open</span></div>
-    ${wk.fixtures.map(fixtureCard).join("")}`;
-  // wire inputs -> save (stub persists locally; Firebase later). Locked matches
-  // are disabled in fixtureCard(), so only open matches are editable.
-  $("predict-body").querySelectorAll(".fixture").forEach(card=>{
-    const fx = card.dataset.fx;
-    card.querySelectorAll("input").forEach(inp=>{
-      inp.addEventListener("change",()=>savePick(curWeekKey, fx, inp.dataset.side, inp.value));
-    });
-  });
-}
-
-// ===== RESULTS (week-by-week pill) =======================================
-let resultsIdx = 0;
-function pill(host, idx, onChange){
-  const wk = APP.weeks[idx];
-  host.innerHTML = `<button data-d="-1" ${idx<=0?"disabled":""}>‹</button>
-    <span class="lbl">Gameweek ${wk?wk.gameweek:"—"}</span>
-    <button data-d="1" ${idx>=APP.weeks.length-1?"disabled":""}>›</button>`;
-  host.querySelectorAll("button").forEach(b=>b.onclick=()=>onChange(idx+ +b.dataset.d));
-}
-function resultCard(m){
-  const done = played(m);
-  const myPick = (APP.picks?.weekly?.["gw"+APP.weeks[resultsIdx].gameweek]||{})[m.fixtureId];
-  let row;
-  if(!done){ row = `<div class="result-row"><span class="nopick">awaiting result</span></div>`; }
-  else {
-    const pts = myPick ? scorePick(myPick, m.score) : null;
-    const pick = myPick ? `${myPick.h}–${myPick.a}` : null;
-    row = `<div class="result-row">
-      <span class="tag">Actual<span class="val">${m.score.h}–${m.score.a}</span></span>
-      ${pick!=null
-        ? `<span class="tag">You<span class="val">${pick}</span></span><span class="pts p${pts}">${pts} pt${pts===1?"":"s"}</span>`
-        : `<span class="nopick">no pick</span>`}</div>`;
-  }
-  return `<article class="fixture">
-    <div class="kick"><span>${ko(m.kickoffUtc)}</span>${done?'<span class="chip locked">Final</span>':'<span class="chip">—</span>'}</div>
-    <div class="faceoff">
-      <div class="team home">${badge(m.home.name, m.home.crest)}<span class="name">${shortName(m.home.name)}</span></div>
-      <div class="score result"><span class="num">${done?m.score.h:"–"}</span><span class="dash">:</span><span class="num">${done?m.score.a:"–"}</span></div>
-      <div class="team away"><span class="name">${shortName(m.away.name)}</span>${badge(m.away.name, m.away.crest)}</div>
-    </div>${row}</article>`;
-}
-function renderResults(idx){
-  resultsIdx = Math.min(Math.max(idx,0),APP.weeks.length-1);
-  pill($("results-pill"),resultsIdx,renderResults);
-  const wk = APP.weeks[resultsIdx];
-  $("results-body").innerHTML = wk ? wk.fixtures.map(resultCard).join("") : `<div class="empty">No gameweek.</div>`;
-  renderLowerLeagueImporter();
-}
-
-// Scorer tool: paste a final/current table for each lower league to settle
-// promotion/relegation (top 3 up, bottom 3 down). PL + Championship come from
-// the feed automatically, so they're not pasted here.
-function renderLowerLeagueImporter(){
-  const host = $("importer-body");
-  if(!host) return;
-  host.innerHTML = IMPORT_DIVS.filter(([slug])=>slug!=="championship" || !APP.standings?.divisions?.championship?.table?.length)
-    .map(([slug,name])=>{
-      const t = APP.pastedTables?.[slug];
-      const status = t ? `<span style="color:var(--emerald)">✓ ${t.length} rows imported</span>` : `<span style="color:var(--mist-2)">not imported yet</span>`;
-      return `<h3 style="color:var(--emerald);font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin:16px 0 6px">${name} ${status}</h3>
-        <textarea id="imp_${slug}" placeholder="Paste the ${name} table — one club per row, top of the table first. Extra columns (P, Pts, GD) are ignored." style="width:100%;height:90px;font-family:monospace;font-size:12px;padding:10px;border-radius:8px;border:1px solid var(--navy-700);background:var(--navy-900);color:var(--paper)"></textarea>
-        <button class="chip" data-imp="${slug}" style="cursor:pointer;border:none;margin-top:6px;background:var(--emerald);color:var(--emerald-ink);padding:8px 14px">Import ${name} table</button>
-        <div id="impmsg_${slug}" style="font-size:12.5px;color:var(--mist);margin-top:8px;line-height:1.5"></div>`;
-    }).join("");
-  host.querySelectorAll("[data-imp]").forEach(b=> b.onclick=()=>importTable(b.dataset.imp));
-}
-
-// ===== TODAY =============================================================
-function renderToday(){
-  const now=new Date(), out=[];
-  APP.weeks.forEach(wk=>wk.fixtures.forEach(m=>{
-    const d=new Date(m.kickoffUtc);
-    if(d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth()&&d.getDate()===now.getDate())
-      out.push(played(m)?resultCard2(m):fixtureCard(m));
-  }));
-  $("today-body").innerHTML = out.length ? out.join("")
-    : `<div class="empty"><span class="big">😴</span>No Premier League matches today.<br>Check <b>Predict</b> for the next gameweek.</div>`;
-}
-function resultCard2(m){ // read-only card for a finished match on Today
-  return `<article class="fixture"><div class="kick"><span>${ko(m.kickoffUtc)}</span><span class="chip locked">Final</span></div>
-    <div class="faceoff"><div class="team home">${badge(m.home.name, m.home.crest)}<span class="name">${shortName(m.home.name)}</span></div>
-    <div class="score result"><span class="num">${m.score.h}</span><span class="dash">:</span><span class="num">${m.score.a}</span></div>
-    <div class="team away"><span class="name">${shortName(m.away.name)}</span>${badge(m.away.name, m.away.crest)}</div></div></article>`;
-}
-
-// ===== TABLES (live PL standings) ========================================
-// Leagues shown on the Tables tab. Add league_one/league_two here later if a
-// data source is found — the chooser and render already handle any division.
-const TABLE_DIVS = [
-  ["premier_league","Premier League"],
-  ["championship","Championship"],
-  ["league_one","League One"],
-  ["league_two","League Two"],
-];
-let tablesDiv = "premier_league";
-function renderTables(){
-  // header reflects the selected division
-  const label = (TABLE_DIVS.find(([s])=>s===tablesDiv)||[])[1] || "League";
-  const titleEl = $("tables-title"); if(titleEl) titleEl.textContent = label + " Table";
-  // chooser pills
-  const pills = TABLE_DIVS.map(([slug,label])=>
-    `<button class="tbpill ${slug===tablesDiv?'active':''}" data-div="${slug}">${label}</button>`).join("");
-  // tableFor() returns feed standings (PL/Champ) OR a pasted table (L1/L2).
-  const table = tableFor(tablesDiv) || [];
-  const isPasted = !(APP.standings?.divisions?.[tablesDiv]?.table?.length);
-  let body;
-  if(table.length){
-    const note = isPasted ? "Imported from the latest table you pasted (Results tab)." : "Live — updates a few times a week.";
-    body = tableHTML(table, note);
-  } else {
-    const clubs = teamsFor(tablesDiv).map(t=>t.name);
-    if(clubs.length && !isPasted){
-      body = tableHTML(clubs.map((n,i)=>({rank:i+1,name:n,played:0,points:0})), "Zeroed — fills in as results sync.");
-    } else {
-      body = `<div class="empty"><span class="big">📋</span>No table yet for this division.<br>Paste the latest table on the <b>Results</b> tab to show it here.</div>`;
-    }
-  }
-  $("tables-body").innerHTML = `<div class="tbpills">${pills}</div>${body}`;
-  $("tables-body").querySelectorAll(".tbpill").forEach(b=>b.onclick=()=>{ tablesDiv=b.dataset.div; renderTables(); });
-}
-function tableHTML(rows,note){
-  return `<table class="table"><thead><tr><th class="num">#</th><th>Team</th><th class="num">P</th><th class="num">Pts</th></tr></thead>
-    <tbody>${rows.map(r=>`<tr><td class="pos">${r.rank}</td><td>${r.name}</td>
-      <td class="num">${r.played}</td><td class="num">${r.points}</td></tr>`).join("")}</tbody></table>
-    <footer class="note" style="margin-top:14px">${note}</footer>`;
-}
-
-// ===== PICKS (per-match reveal, only after kickoff) ======================
-let picksIdx = 0;
-async function renderPicks(idx){
-  picksIdx = Math.min(Math.max(idx,0),APP.weeks.length-1);
-  pill($("picks-pill"),picksIdx,renderPicks);
-  const wk = APP.weeks[picksIdx];
-  if(!wk){ $("picks-body").innerHTML=`<div class="empty">No gameweek.</div>`; return; }
-  // Load everyone's records (same source the League table uses).
-  let players = [];
-  if(FB.ready && FB.leagueId){
-    const recs = await fbLoadPlayers();
-    players = recs.map(r=>({name:r.name, picks:r.pred||{}}));
-  }
-  if(!players.length && APP.playerName){
-    players = [{name:APP.playerName, picks:APP.picks}];
-  }
-  const gwKey = "gw"+wk.gameweek;
-  // Per-game reveal: locked matches show everyone's picks; open ones stay hidden.
-  $("picks-body").innerHTML = wk.fixtures.map(m=>{
-    if(!matchLocked(m)){
-      return `<article class="fixture"><div class="kick"><span>${ko(m.kickoffUtc)}</span><span class="chip open">Hidden until kickoff</span></div>
-        <div class="faceoff"><div class="team home">${badge(m.home.name, m.home.crest)}<span class="name">${shortName(m.home.name)}</span></div>
-        <div class="score result"><span class="num">?</span><span class="dash">:</span><span class="num">?</span></div>
-        <div class="team away"><span class="name">${shortName(m.away.name)}</span>${badge(m.away.name, m.away.crest)}</div></div></article>`;
-    }
-    // locked -> list each player's pick (and points if the match has a result)
-    let rows;
-    if(!players.length){
-      // If Firebase is configured, an empty list here means it's still loading
-      // (or auth not settled yet) — don't alarm people with "no one joined".
-      const msg = fbConfigured()
-        ? "Loading players… pull down to refresh if this persists."
-        : "No players have joined yet.";
-      rows = `<div class="pick-row"><span class="nopick" style="color:var(--mist-2)">${msg}</span></div>`;
-    } else {
-      rows = players.map(p=>{
-        const pk = (p.picks?.weekly?.[gwKey]||{})[m.fixtureId];
-        const has = pk && pk.h!=null && pk.a!=null;
-        const pickStr = has ? `${pk.h}–${pk.a}` : "—";
-        let pts = "";
-        if(has && played(m)){
-          const sc = scorePick(pk, m.score);
-          pts = `<span class="pk-pts pk-${sc}">${sc}</span>`;
-        }
-        return `<div class="pick-row"><span class="pk-name">${p.name}</span>
-          <span class="pk-score">${pickStr}</span>${pts}</div>`;
-      }).join("");
-    }
-    return `<article class="fixture"><div class="kick"><span>${ko(m.kickoffUtc)}</span><span class="chip locked">Revealed</span></div>
-      <div class="faceoff"><div class="team home">${badge(m.home.name, m.home.crest)}<span class="name">${shortName(m.home.name)}</span></div>
-      <div class="score result"><span class="num">${played(m)?m.score.h:"–"}</span><span class="dash">:</span><span class="num">${played(m)?m.score.a:"–"}</span></div>
-      <div class="team away"><span class="name">${shortName(m.away.name)}</span>${badge(m.away.name, m.away.crest)}</div></div>
-      <div class="picks-list">${rows}</div></article>`;
-  }).join("");
-}
-
-// ===== LEAGUE (leaderboard) ==============================================
-async function renderLeague(){
-  let players;
-  if(FB.ready && FB.leagueId){
-    const recs = await fbLoadPlayers();
-    players = recs.map(r=>({name:r.name, picks:r.pred||{}, me:r.uid===FB.uid}));
-    if(!players.length) players = [{name:APP.playerName||"You", picks:APP.picks, me:true}];
-  } else {
-    players = [{name:APP.playerName||"You (this device)", picks:APP.picks, me:true}];
-  }
-  const anyTable = tableFor("premier_league") || Object.keys(APP.pastedTables||{}).length;
-  // GW column = the most recently LOCKED gameweek (shows GW5 from GW5 kickoff
-  // until GW6 kickoff). Pre-season it's GW1.
-  const gwWk = lockedWeek();
-  const curGwNum = gwWk ? gwWk.gameweek : null;
-  const rows = players.map(p=>{
-    const season = scoreSeason(p.picks);
-    let weekly=0, thisGw=0;
-    APP.weeks.forEach(wk=>wk.fixtures.forEach(m=>{
-      if(!played(m)) return;
-      const pk=(p.picks?.weekly?.["gw"+wk.gameweek]||{})[m.fixtureId];
-      const pts=pk?scorePick(pk,m.score):null;
-      if(pts!=null){ weekly+=pts; if(wk.gameweek===curGwNum) thisGw+=pts; }
-    }));
-    return {name:p.name, me:p.me, thisGw, weekly, season:season.points, total:weekly+season.points};
-  }).sort((a,b)=> (provisionalActive()?b.total:b.weekly) - (provisionalActive()?a.total:a.weekly));
-  if(!anyTable && rows.every(r=>r.total===0)){
-    $("league-body").innerHTML = `<div class="empty"><span class="big">📊</span>
-      No points yet. Weekly points appear as matches finish; season-pick points appear once the
-      relevant tables are in (PL &amp; Championship from the feed, lower leagues pasted on the Results tab).</div>`;
-    return;
-  }
-  const gwHead = curGwNum ? "GW"+curGwNum : "GW";
-  const provOn = provisionalActive();
-  // While dormant, season picks aren't in the totals and show as "–".
-  const seasonCell = r => provOn ? `<td class="num proj">${r.season}</td>` : `<td class="num" style="color:var(--mist-2)">–</td>`;
-  const totalVal = r => provOn ? r.total : r.weekly;
-  $("league-body").innerHTML = `
-    <table class="table lg"><thead><tr><th>Player</th>
-      <th class="num gwcol">${gwHead}</th>
-      <th class="num">Weekly</th><th class="num" style="max-width:64px;white-space:normal;line-height:1.1">Season Picks</th><th class="num">Total</th></tr></thead>
-      <tbody>${rows.map((r,i)=>`<tr class="${r.me?"me":""}"><td>${i+1}. ${r.name}</td>
-        <td class="num gwcol">${r.thisGw}</td>
-        <td class="num">${r.weekly}</td>${seasonCell(r)}<td class="num"><b>${totalVal(r)}</b></td></tr>`).join("")}</tbody></table>
-    <footer class="note" style="margin-top:12px"><b>${gwHead}</b> = points from the latest gameweek to kick off (stays on this week until the next starts). <b>Weekly</b> = your running match-points total. <b>Season Picks</b> = champion + promotion/relegation bonus, ${provOn ? "now scoring provisionally on the current tables" : "which starts scoring with 10 games to go"}.</footer>`;
-}
-
-// ===== SEASON PICKS (champion + promotion/relegation) ====================
-const PROMREL = [
-  ["intoPL","Promoted to Premier League","championship",3],
-  ["outOfPL","Relegated from Premier League","premier_league",3],
-  ["intoChamp","Promoted to Championship","league_one",3],
-  ["outOfChamp","Relegated from Championship","championship",3],
-  ["intoL1","Promoted to League One","league_two",3],
-  ["outOfL1","Relegated from League One","league_one",3],
-  ["outOfL2","Relegated from League Two","league_two",3],
-];
-function teamsFor(slug){
-  // Name authority per division:
-  //  - premier_league / championship  -> the FEED (standings or fixtures)
-  //  - league_one / league_two -> the committed CSV
-  if(slug==="premier_league" || slug==="championship"){
-    // Prefer standings names; fall back to whatever the fixtures/divisions carry.
-    const st = APP.standings?.divisions?.[slug]?.table;
-    if(st && st.length) return st.map(r=>({name:r.name}));
-    const dv = APP.divisions?.divisions?.[slug]?.teams;
-    if(dv && dv.length) return dv;
-    return [];
-  }
-  const csv = APP.lowerClubs?.[slug];
-  if(csv && csv.length) return csv.map(name=>({name}));
-  // last resort: bundled divisions.json (pre-feed scaffold)
-  return (APP.divisions?.divisions?.[slug]?.teams||[]);
-}
-// Picks store the club NAME (settlement matches on name, per the canonical-name design).
-function sel(id, slug, saved){
-  const opts = teamsFor(slug).map(t=>`<option value="${t.name}" ${String(saved)===String(t.name)?"selected":""}>${t.name}</option>`).join("");
-  return `<select id="${id}"><option value="">— choose —</option>${opts}</select>`;
-}
-// Normalise a club name for safe comparison (trim, collapse spaces, lowercase).
-function normClub(s){
-  // Lowercase, strip annotations (Est:), full stops, trailing FC/AFC, and any
-  // exotic whitespace (non-breaking spaces etc.), then collapse to single spaces.
-  return (s||"").toString()
-    .replace(/[\u00A0\u2007\u202F\u200B\uFEFF]/g," ") // nbsp & friends -> normal space
-    .toLowerCase()
-    .replace(/^est:?\s*/,"")
-    .replace(/[.]/g,"")
-    .replace(/\s+f\.?c\.?$/,"")
-    .replace(/\s+a\.?f\.?c\.?$/,"")
-    .replace(/[^a-z0-9 ]/g,"")   // drop any other stray punctuation/symbols
-    .replace(/\s+/g," ")
-    .trim();
-}
-function renderSeasonPicks(){
-  const locked = seasonLocked();
-  const champ = APP.picks?.season?.champion || "";
-  $("sel-champion").innerHTML = sel("champion","premier_league",champ);
-  const host = $("promrel-selectors");
-  host.innerHTML = PROMREL.map(([key,label,slug,pts])=>{
-    const savedArr = APP.picks?.season?.promRel?.[key] || [];
-    const rows = [0,1,2].map(i=>`<div class="selector-row"><span>Pick ${i+1}</span>${sel(key+"_"+i,slug,savedArr[i]||"")}</div>`).join("");
-    return `<h3>${label} <span class="worth">${pts} pts each · any order</span></h3>${rows}`;
-  }).join("");
-  const panel = $("season-picks-panel");
-  panel.querySelectorAll("select").forEach(s=>{
-    if(locked){ s.disabled = true; }
-    else s.addEventListener("change",saveSeasonPicks);
-  });
-  // lock banner
-  const existing = $("season-lock-banner"); if(existing) existing.remove();
-  if(locked){
-    const b = document.createElement("div");
-    b.id="season-lock-banner"; b.className="banner-locked";
-    b.innerHTML = `🔒 <div><b>Season picks are locked</b> — the Premier League season has started. These were set before the first kickoff and can't be changed now.</div>`;
-    panel.insertBefore(b, panel.querySelector("h3").previousSibling || panel.children[2]);
-  }
-}
-
-// ===== HELP ==============================================================
-function renderHelp(){
-  $("help-body").innerHTML = `<div style="font-size:14px;line-height:1.6">
-    <p><b style="color:var(--emerald)">Predict</b> — enter a scoreline for each match. Every match locks at its own kickoff, so you can lock some in early and leave others late.</p>
-    <p><b style="color:var(--emerald)">Scoring</b> — 3 points for the exact score, 1 for the right result (win/draw/loss), 0 otherwise. Same shape as league points.</p>
-    <p><b style="color:var(--emerald)">Season Picks</b> — champion is worth 5. Each correctly named promoted or relegated club is worth 3, in any order. They lock when the Premier League kicks off.</p>
-    <p><b style="color:var(--emerald)">Projected points</b> — from 10 games to go, your season picks start scoring on an "if the season ended today" basis, shown separately so your real total never jumps around.</p>
-    <p><b style="color:var(--emerald)">Picks</b> — you can see everyone's prediction for a match once it kicks off, never before.</p>
+  <div class="wrap">
+    <header>
+      <div class="badge">🏈 NFL · Prediction League</div>
+      <h1 id="appTitle">Hit Paydirt<br/>NFL League</h1>
+      <div class="sub" id="appSub">Every game locks at its own kickoff · UK times</div>
+      <div id="leagueChipWrap"></div>
+    </header>
+    <div id="app"></div>
   </div>
-  <div id="scorer-tools"></div>`;
-  renderScorerTools();
-}
 
-// Scorer-only: create a league and provision players with personal links.
-function renderScorerTools(){
-  const host = $("scorer-tools"); if(!host) return;
-  if(!fbConfigured()){
-    host.innerHTML = `<div class="banner-locked" style="margin-top:16px">⚙️ <div><b>Multiplayer not configured yet</b> — add your Firebase keys in the code (window.FIREBASE_CONFIG) to enable leagues and join links. The app runs solo until then.</div></div>`;
-    return;
+  <div class="savebar hidden" id="savebar">
+    <div class="inner">
+      <button class="btn btn-ghost" id="leaveBtn" style="width:auto;flex:0 0 auto">⚙️</button>
+      <button class="btn btn-green" id="syncBtn">🔄 Refresh data</button>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script>
+  // ==== CONFIG ====
+  // Data comes from the pipeline in this same repo (see README / scripts).
+  // Relative paths - the app and the data are served from the same GitHub Pages site.
+  const SEASON_YEAR = 2026;
+  const DATA_BASE   = './data/' + SEASON_YEAR;
+  const SEASON_URL  = './data/season.json';
+  const firebaseConfig = {
+    apiKey: 'AIzaSyD66JO-6eI33rhwgzSwYD1AVPwpeR4f7zk',
+    authDomain: 'world-cup-league-1599a.firebaseapp.com',
+    projectId: 'world-cup-league-1599a',
+    storageBucket: 'world-cup-league-1599a.firebasestorage.app',
+    messagingSenderId: '106750357999',
+    appId: '1:106750357999:web:002566f63767f284aa861a'
+  };
+
+  // Team identity: name, conference, short nickname, and the team's real
+  // primary/secondary colours.
+  //
+  // WHY COLOURS AND NOT LOGOS: club badges, the NFL shield and the AFC/NFC
+  // marks are protected trademarks. Colours are just facts. These give every
+  // team an instantly recognisable identity with zero legal exposure, no
+  // external image requests, and they read better than logos at small sizes
+  // on a phone. Primary colours cross-checked against the ESPN feed's own
+  // "color" / "alternateColor" fields.
+  //
+  // NOTE: Washington is 'WSH' - that's what the results feed uses. Do not
+  // change it to 'WAS' or every Washington game will fail to match.
+  const TEAM_META = {
+    'ARI':{name:'Arizona Cardinals',      nick:'Cardinals', conf:'NFC', c1:'#97233F', c2:'#FFB612'},
+    'ATL':{name:'Atlanta Falcons',        nick:'Falcons',   conf:'NFC', c1:'#A71930', c2:'#000000'},
+    'BAL':{name:'Baltimore Ravens',       nick:'Ravens',    conf:'AFC', c1:'#241773', c2:'#9E7C0C'},
+    'BUF':{name:'Buffalo Bills',          nick:'Bills',     conf:'AFC', c1:'#00338D', c2:'#C60C30'},
+    'CAR':{name:'Carolina Panthers',      nick:'Panthers',  conf:'NFC', c1:'#0085CA', c2:'#101820'},
+    'CHI':{name:'Chicago Bears',          nick:'Bears',     conf:'NFC', c1:'#0B162A', c2:'#C83803'},
+    'CIN':{name:'Cincinnati Bengals',     nick:'Bengals',   conf:'AFC', c1:'#FB4F14', c2:'#000000'},
+    'CLE':{name:'Cleveland Browns',       nick:'Browns',    conf:'AFC', c1:'#311D00', c2:'#FF3C00'},
+    'DAL':{name:'Dallas Cowboys',         nick:'Cowboys',   conf:'NFC', c1:'#041E42', c2:'#869397'},
+    'DEN':{name:'Denver Broncos',         nick:'Broncos',   conf:'AFC', c1:'#FB4F14', c2:'#002244'},
+    'DET':{name:'Detroit Lions',          nick:'Lions',     conf:'NFC', c1:'#0076B6', c2:'#B0B7BC'},
+    'GB' :{name:'Green Bay Packers',      nick:'Packers',   conf:'NFC', c1:'#203731', c2:'#FFB612'},
+    'HOU':{name:'Houston Texans',         nick:'Texans',    conf:'AFC', c1:'#03202F', c2:'#A71930'},
+    'IND':{name:'Indianapolis Colts',     nick:'Colts',     conf:'AFC', c1:'#002C5F', c2:'#A2AAAD'},
+    'JAX':{name:'Jacksonville Jaguars',   nick:'Jaguars',   conf:'AFC', c1:'#006778', c2:'#D7A22A'},
+    'KC' :{name:'Kansas City Chiefs',     nick:'Chiefs',    conf:'AFC', c1:'#E31837', c2:'#FFB81C'},
+    'LV' :{name:'Las Vegas Raiders',      nick:'Raiders',   conf:'AFC', c1:'#000000', c2:'#A5ACAF'},
+    'LAC':{name:'Los Angeles Chargers',   nick:'Chargers',  conf:'AFC', c1:'#0080C6', c2:'#FFC20E'},
+    'LAR':{name:'Los Angeles Rams',       nick:'Rams',      conf:'NFC', c1:'#003594', c2:'#FFD100'},
+    'MIA':{name:'Miami Dolphins',         nick:'Dolphins',  conf:'AFC', c1:'#008E97', c2:'#FC4C02'},
+    'MIN':{name:'Minnesota Vikings',      nick:'Vikings',   conf:'NFC', c1:'#4F2683', c2:'#FFC62F'},
+    'NE' :{name:'New England Patriots',   nick:'Patriots',  conf:'AFC', c1:'#002244', c2:'#C60C30'},
+    'NO' :{name:'New Orleans Saints',     nick:'Saints',    conf:'NFC', c1:'#101820', c2:'#D3BC8D'},
+    'NYG':{name:'New York Giants',        nick:'Giants',    conf:'NFC', c1:'#0B2265', c2:'#A71930'},
+    'NYJ':{name:'New York Jets',          nick:'Jets',      conf:'AFC', c1:'#125740', c2:'#FFFFFF'},
+    'PHI':{name:'Philadelphia Eagles',    nick:'Eagles',    conf:'NFC', c1:'#004C54', c2:'#A5ACAF'},
+    'PIT':{name:'Pittsburgh Steelers',    nick:'Steelers',  conf:'AFC', c1:'#101820', c2:'#FFB612'},
+    'SEA':{name:'Seattle Seahawks',       nick:'Seahawks',  conf:'NFC', c1:'#002244', c2:'#69BE28'},
+    'SF' :{name:'San Francisco 49ers',    nick:'49ers',     conf:'NFC', c1:'#AA0000', c2:'#B3995D'},
+    'TB' :{name:'Tampa Bay Buccaneers',   nick:'Buccaneers',conf:'NFC', c1:'#D50A0A', c2:'#34302B'},
+    'TEN':{name:'Tennessee Titans',       nick:'Titans',    conf:'AFC', c1:'#0C2340', c2:'#4B92DB'},
+    'WSH':{name:'Washington Commanders',  nick:'Commanders',conf:'NFC', c1:'#5A1414', c2:'#FFB612'}
+  };
+  const CONF_COLOR = { AFC:'#D50A0A', NFC:'#003594' };  // real conference colours
+  function teamNick(code){ return TEAM_META[code]?.nick || code; }
+  function teamC1(code){ return TEAM_META[code]?.c1 || '#3a4c68'; }
+  function teamC2(code){ return TEAM_META[code]?.c2 || '#8fa3c0'; }
+  // Badge: the team's abbreviation in its own colours. Drawn, not downloaded.
+  function teamBadge(code, size){
+    const s=size||34;
+    const c1=teamC1(code), c2=teamC2(code);
+    return '<span class="tbadge" style="width:'+s+'px;height:'+s+'px;background:'+c1+
+           ';border-color:'+c2+';font-size:'+(code.length>2?s*0.30:s*0.36)+'px">'+esc(code)+'</span>';
   }
-  // Only show scorer tools to the league creator, or when no league is loaded yet (setup).
-  const canManage = FB.isScorer || !FB.leagueId;
-  if(!canManage){ host.innerHTML=""; return; }
-  host.innerHTML = `
-    <div class="panel" style="margin-top:18px"><h2 style="font-size:16px">Manage league (scorer)</h2>
-      ${FB.leagueId ? `<p class="sub">League code: <b style="color:var(--emerald)">${FB.leagueId}</b></p>` :
-        `<p class="sub">Create your league, then add each player to get their personal join link.</p>
-         <div class="selector-row"><input id="new-league-name" placeholder="League name" style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--navy-700);background:var(--navy-900);color:var(--paper)"></div>
-         <button class="chip" id="btn-create-league" style="cursor:pointer;border:none;margin-top:6px;background:var(--emerald);color:var(--emerald-ink);padding:9px 16px">Create league</button>`}
-      ${FB.leagueId ? `
-        <div class="selector-row" style="margin-top:12px"><input id="new-player-name" placeholder="Player name" style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--navy-700);background:var(--navy-900);color:var(--paper)"></div>
-        <button class="chip" id="btn-add-player" style="cursor:pointer;border:none;margin-top:6px;background:var(--emerald);color:var(--emerald-ink);padding:9px 16px">Add player + get link</button>
-        <div id="player-links" style="margin-top:14px"></div>` : ""}
-    </div>`;
-  const cl = $("btn-create-league");
-  if(cl) cl.onclick = async ()=>{
-    const code = await fbCreateLeague($("new-league-name").value.trim());
-    if(code){ renderScorerTools(); refreshPlayerLinks(); }
-  };
-  const ap = $("btn-add-player");
-  if(ap) ap.onclick = async ()=>{
-    const name = $("new-player-name").value.trim(); if(!name) return;
-    const pid = await fbAddPlayer(name);
-    if(pid){ $("new-player-name").value=""; refreshPlayerLinks(); }
-  };
-  if(FB.leagueId) refreshPlayerLinks();
-}
+  const AFC_TEAMS = Object.keys(TEAM_META).filter(k=>TEAM_META[k].conf==='AFC').sort();
+  const NFC_TEAMS = Object.keys(TEAM_META).filter(k=>TEAM_META[k].conf==='NFC').sort();
+  // NFL-native margin brackets aligned to scoring increments:
+  //   FG = field goal (1-3), one score (4-8), two scores (9-16), blowout (17+).
+  const MARGIN_OPTIONS = [
+    {value:'1to3',   label:'1–3 pts (FG)'},
+    {value:'4to8',   label:'4–8 pts (one score)'},
+    {value:'9to16',  label:'9–16 pts (two scores)'},
+    {value:'17plus', label:'17+ pts (blowout)'}
+  ];
+  const PLAYOFF_STAGES = ['wildcard','divisional','conference','superbowl'];
+  const PLAYOFF_LABELS = {wildcard:'Wild Card', divisional:'Divisional', conference:'Conference Championships', superbowl:'Super Bowl'};
+  const LS='nfl_weekly_prediction_v1';
 
-async function refreshPlayerLinks(){
-  const host = $("player-links"); if(!host) return;
-  const players = await fbLoadPlayers();
-  if(!players.length){ host.innerHTML=`<p class="sub">No players yet.</p>`; return; }
-  host.innerHTML = players.map(p=>{
-    const link = playerLink(p.playerId);
-    const claimed = p.uid ? "✓ joined" : "not joined yet";
-    return `<div class="selector-row"><span>${p.name} <small style="color:var(--mist-2)">${claimed}</small></span>
-      <button class="chip" style="cursor:pointer;border:none;background:var(--navy-700);color:var(--paper)"
-        onclick="navigator.clipboard.writeText('${link}').then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy link',1200)})">Copy link</button></div>`;
-  }).join("");
-}
+  let db=null, auth=null, fbReady=false, fbError=null, GAMES=null, LG=null;
+  let SEASON=null, WEEKS=[], PLAYOFFS=[], DATA_UPDATED=0;
+  let unsubLeague=null, unsubPlayers=null, predTimer=null, resultsTimer=null;
+  let myUid=null;
+  let local={leagueId:'',playerId:'',isScorer:false};
+  let memberships=[];
+  let ui={mode:'predict', week:1};
 
-/* ===== FIREBASE MULTIPLAYER LAYER =======================================
-   Identity = personal join links (?lg=<code>&p=<playerId>). The scorer
-   creates a league and provisions one player record per person; opening a
-   personal link claims that record to the device. Picks save to
-   epl_leagues/{id}/players/{playerId}.pred. Falls back to localStorage-only
-   (solo) if Firebase isn't configured, so the app always works.
-
-   FILL IN window.FIREBASE_CONFIG below with your project's web config
-   (Firebase console → Project settings → Your apps → Web app).            */
-window.FIREBASE_CONFIG = window.FIREBASE_CONFIG || {
-  apiKey: "AIzaSyBPOkyReCaGY6L_d4qYDN7bcuUqAsrGF00",
-  authDomain: "world-cup-league-1599a.firebaseapp.com",
-  projectId: "world-cup-league-1599a",
-  appId: "1:106750357999:web:0b86c338df3a690caa861a"
-};
-
-const FB = { ready:false, db:null, uid:null, leagueId:null, playerId:null, isScorer:false, league:null };
-
-function fbConfigured(){
-  const c = window.FIREBASE_CONFIG||{};
-  return c.apiKey && !String(c.apiKey).startsWith("PASTE");
-}
-
-async function fbInit(){
-  if(!fbConfigured() || typeof firebase==="undefined"){ return false; }
   try{
-    firebase.initializeApp(window.FIREBASE_CONFIG);
-    FB.db = firebase.firestore();
-    await firebase.auth().signInAnonymously();
-    FB.uid = firebase.auth().currentUser.uid;
-    FB.ready = true;
-    return true;
-  }catch(e){ console.warn("Firebase init failed, running solo:",e); return false; }
-}
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    auth = firebase.auth();
+    auth.signInAnonymously().catch(e=>fbError=e.message);
+    auth.onAuthStateChanged(u=>{ if(u){ myUid=u.uid; fbReady=true; } });
+  }catch(e){fbError=e.message;}
 
-// Read ?lg= and ?p= from the URL (the personal link).
-function fbParseLink(){
-  const q = new URLSearchParams(location.search);
-  return { lg:q.get("lg"), p:q.get("p"), setup:q.get("setup")==="1" };
-}
-
-// Load the league + this player's record, claiming the slot to this device.
-async function fbJoin(){
-  const {lg,p} = fbParseLink();
-  if(!FB.ready || !lg) return false;
-  FB.leagueId = lg; FB.playerId = p;
-  try{
-    const lref = FB.db.collection("epl_leagues").doc(lg);
-    const lsnap = await lref.get();
-    if(!lsnap.exists) return false;
-    FB.league = lsnap.data();
-    APP.leagueCode = lg; APP.leagueName = FB.league.name;
-    FB.isScorer = (FB.league.scorerUid === FB.uid);
-    if(p){
-      const pref = lref.collection("players").doc(p);
-      const psnap = await pref.get();
-      if(psnap.exists){
-        const pdata = psnap.data();
-        // claim to this device if unclaimed or different device
-        if(pdata.uid !== FB.uid){
-          await pref.update({ uid: FB.uid });
-        }
-        // load their saved picks into APP.picks
-        if(pdata.pred){ APP.picks = pdata.pred; APP.picks.weekly=APP.picks.weekly||{}; APP.picks.season=APP.picks.season||{champion:"",promRel:{}}; }
-        APP.playerName = pdata.name;
+  (function initLocal(){
+    try{
+      const saved=JSON.parse(localStorage.getItem(LS));
+      if(saved){
+        memberships=Array.isArray(saved.memberships)?saved.memberships:[];
+        local=saved.active||memberships[0]||local;
       }
-    }
-    return true;
-  }catch(e){ console.warn("Join failed:",e); return false; }
-}
-
-// Write this player's picks to Firebase (debounced).
-let _saveTimer=null;
-function fbSavePicks(){
-  if(!FB.ready || !FB.leagueId || !FB.playerId){ _persist(); return; }
-  clearTimeout(_saveTimer);
-  _saveTimer = setTimeout(async ()=>{
-    try{
-      await FB.db.collection("epl_leagues").doc(FB.leagueId)
-        .collection("players").doc(FB.playerId)
-        .update({ pred: APP.picks, uid: FB.uid });
-    }catch(e){ console.warn("Save failed:",e); }
-  }, 600);
-  _persist(); // keep a local backup too
-}
-
-// Load every player's record (for the league table + picks reveal).
-async function fbLoadPlayers(){
-  if(!FB.ready || !FB.leagueId) return APP.playersCache || [];
-  try{
-    const snap = await FB.db.collection("epl_leagues").doc(FB.leagueId).collection("players").get();
-    const list = snap.docs.map(d=>({ playerId:d.id, ...d.data() }));
-    if(list.length) APP.playersCache = list;   // remember for tabs that render before a fetch completes
-    return list;
-  }catch(e){ console.warn("Load players failed:",e); return APP.playersCache || []; }
-}
-
-/* ---- Scorer tools: create league + provision players ------------------- */
-function randCode(n){ const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let s=""; for(let i=0;i<n;i++) s+=a[Math.floor(Math.random()*a.length)]; return s; }
-
-async function fbCreateLeague(name){
-  if(!FB.ready) { alert("Firebase not configured yet."); return null; }
-  const code = randCode(6);
-  try{
-    await FB.db.collection("epl_leagues").doc(code).set({
-      name: name || "The Mander Premier League",
-      scorerUid: FB.uid,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      results: { champion:"", promRel:"" }
-    });
-    FB.leagueId = code; FB.isScorer = true; FB.league = {name, scorerUid:FB.uid};
-    return code;
-  }catch(e){ alert("Could not create league: "+e.message); return null; }
-}
-
-async function fbAddPlayer(name){
-  if(!FB.ready || !FB.leagueId) return null;
-  const pid = randCode(10);
-  try{
-    await FB.db.collection("epl_leagues").doc(FB.leagueId).collection("players").doc(pid).set({
-      name: name, uid:"", pred:{weekly:{},season:{champion:"",promRel:{}}},
-      joinedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    return pid;
-  }catch(e){ alert("Could not add player: "+e.message); return null; }
-}
-function playerLink(pid){ return `${location.origin}${location.pathname}?lg=${FB.leagueId}&p=${pid}`; }
-
-/* ===== SAVE (Firebase-backed, local fallback) =========================== */
-function _persist(){ try{ localStorage.setItem("matchday_picks", JSON.stringify(APP.picks)); }catch(e){} }
-function savePick(weekKey, fixtureId, side, value){
-  APP.picks.weekly[weekKey] = APP.picks.weekly[weekKey] || {};
-  const cur = APP.picks.weekly[weekKey][fixtureId] || {h:null,a:null};
-  cur[side] = value===""?null:parseInt(value,10);
-  APP.picks.weekly[weekKey][fixtureId] = cur;
-  fbSavePicks();
-}
-function saveSeasonPicks(){
-  if(seasonLocked()){ return; }  // no changes after the EPL kicks off
-  APP.picks.season = APP.picks.season || {champion:"",promRel:{}};
-  APP.picks.season.champion = $("champion").value;
-  PROMREL.forEach(([key])=>{
-    APP.picks.season.promRel[key] = [0,1,2].map(i=>$(key+"_"+i)?.value).filter(v=>v);
-  });
-  fbSavePicks();
-}
-
-/* Season picks lock at the FIRST EPL kickoff (GW1's earliest match). */
-function seasonLockTime(){
-  const gw1 = APP.weeks.find(w=>w.gameweek===1);
-  if(!gw1 || !gw1.fixtures.length) return null;
-  return gw1.fixtures.reduce((min,m)=>{
-    const t = new Date(m.kickoffUtc).getTime();
-    return t<min ? t : min;
-  }, Infinity);
-}
-function seasonLocked(){ const t=seasonLockTime(); return t!=null && Date.now()>=t; }
-
-// Provisional season-pick scoring switches on with N games (gameweeks) to go —
-// N comes from data/season.json (default 10). "Games to go" = gameweeks that
-// still have at least one unplayed match. Also on once picks have settled.
-function provisionalActive(){
-  const threshold = (APP.seasonMeta?.provisionalScoringFromGamesToGo) || 10;
-  const remaining = APP.weeks.filter(wk => wk.fixtures.some(m=>!played(m))).length;
-  // if final tables have settled the picks, treat as active too
-  const settled = (tableFor("premier_league")||[]).some(r=>r.played>=38);
-  return settled || (APP.weeks.length>0 && remaining<=threshold);
-}
-
-/* ===== SEASON-PICK SETTLEMENT ==========================================
-   Each promotion/relegation boundary reads a division's TABLE and takes the
-   top 3 (promoted) or bottom 3 (relegated). Tables come from two places:
-     - PL & Championship: the football-data.org feed (APP.standings)
-     - League One / Two: a table the scorer PASTES in-app
-       (APP.pastedTables[slug]), top row = 1st. Play-off winner is arranged
-       into 3rd upstream by the scorer's spreadsheet skill.
-   Scoring: 3 points per correctly named club, ANY ORDER. Matching is on
-   normalised club NAME. Also powers provisional "if the season ended today".
-
-   PROMREL entry: [key,label,divisionSlug,end]  end = "top" or "bottom".      */
-const PROMREL_SETTLE = {
-  intoPL:{slug:"championship",end:"top"},   outOfPL:{slug:"premier_league",end:"bottom"},
-  intoChamp:{slug:"league_one",end:"top"},  outOfChamp:{slug:"championship",end:"bottom"},
-  intoL1:{slug:"league_two",end:"top"},     outOfL1:{slug:"league_one",end:"bottom"},
-  outOfL2:{slug:"league_two",end:"bottom"}, // bottom of the ladder — relegated from League Two
-};
-// Return the current table (array of {rank,name,...}) for a division slug, or null.
-function tableFor(slug){
-  const fed = APP.standings?.divisions?.[slug]?.table;
-  if(fed && fed.length) return fed;
-  const pasted = APP.pastedTables?.[slug];
-  if(pasted && pasted.length) return pasted;
-  return null;
-}
-// The 3 clubs promoted/relegated from a division's table (names). null if no table yet.
-function settledClubs(slug,end){
-  const t = tableFor(slug);
-  if(!t || t.length<3) return null;
-  const sorted = t.slice().sort((a,b)=>(a.rank||0)-(b.rank||0));
-  const three = end==="top" ? sorted.slice(0,3) : sorted.slice(-3);
-  return three.map(r=>r.name);
-}
-// Score one player's season picks. Returns {points, settled, provisional}.
-// provisional=true if ANY contributing table is only a mid-season snapshot.
-function scoreSeason(picks){
-  let points=0, anySettled=false;
-  const s = picks?.season||{};
-  // champion (5)
-  const champTable = tableFor("premier_league");
-  if(s.champion && champTable && champTable.length){
-    anySettled=true;
-    const top = champTable.slice().sort((a,b)=>(a.rank||0)-(b.rank||0))[0];
-    if(top && normClub(top.name)===normClub(s.champion)) points+=5;
-  }
-  // promotion/relegation (3 each, any order)
-  Object.entries(PROMREL_SETTLE).forEach(([key,{slug,end}])=>{
-    const actual = settledClubs(slug,end);
-    if(!actual) return;
-    anySettled=true;
-    const picked = s.promRel?.[key]||[];
-    const actualNorm = actual.map(normClub);
-    picked.forEach(club=>{ if(actualNorm.includes(normClub(club))) points+=3; });
-  });
-  return {points, settled:anySettled};
-}
-
-/* ===== LOWER-LEAGUE TABLE IMPORTER (scorer only) =======================
-   Paste a league table copied from a spreadsheet. Reads position + club per
-   row (ignores extra columns like P/Pts/GD). Straight import, no preview.
-   Stores under APP.pastedTables[slug] as [{rank,name}]. Warns about any club
-   name that doesn't match that division's dropdown list (the seatbelt against
-   name drift).                                                               */
-const IMPORT_DIVS = [
-  ["championship","Championship"],
-  ["league_one","League One"],
-  ["league_two","League Two"],
-];
-// FBref uses short club names; map them to your canonical dropdown names so
-// promotion/relegation picks settle without mismatch warnings. Add more here
-// if a pasted table ever flags an unmatched name.
-const NAME_ALIASES = {
-  "sheffield weds":"Sheffield Wednesday", "huddersfield":"Huddersfield Town",
-  "doncaster":"Doncaster Rovers", "wycombe":"Wycombe Wanderers",
-  "peterborough":"Peterborough United", "cambridge":"Cambridge United",
-  "stockport":"Stockport County", "p'borough utd":"Peterborough United",
-  "rotherham utd":"Rotherham United", "rotherham":"Rotherham United",
-  "acc'ton stanley":"Accrington Stanley", "accrington":"Accrington Stanley",
-  "colchester utd":"Colchester United", "colchester":"Colchester United",
-  "bristol rvs":"Bristol Rovers", "notts co":"Notts County",
-  "leyton orient":"Leyton Orient", "mk dons":"MK Dons",
-  "afc wimbledon":"AFC Wimbledon",
-  "crawley":"Crawley Town", "crewe":"Crewe Alexandra", "exeter":"Exeter City",
-  "fleetwood":"Fleetwood Town", "grimsby":"Grimsby Town", "newport":"Newport County",
-  "northampton":"Northampton Town", "oldham":"Oldham Athletic",
-  "salford":"Salford City", "shrewsbury":"Shrewsbury Town", "swindon":"Swindon Town",
-  "tranmere":"Tranmere Rovers", "york":"York City", "cheltenham":"Cheltenham Town",
-  "gillingham":"Gillingham", "walsall":"Walsall", "barnet":"Barnet",
-  "port vale":"Port Vale", "rochdale":"Rochdale", "chesterfield":"Chesterfield",
-};
-// Translate a pasted club name to the canonical dropdown name if we know an alias.
-function canonicalName(name, slug){
-  const key = normClub(name);
-  if(NAME_ALIASES[key]) return NAME_ALIASES[key];
-  // exact match against the division's list (case-insensitive) -> use its spelling
-  const hit = teamsFor(slug).find(t=>normClub(t.name)===key);
-  return hit ? hit.name : name;
-}
-// Parse a pasted table. Handles both a plain "rank club" paste and a full CSV
-// with a header row (Rk,Squad,MP,...,Pts,...). Captures name + played + points.
-function parseTable(text, slug){
-  const knownNorm = new Set(teamsFor(slug).map(t=>normClub(t.name)));
-  const lines = (text||"").split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
-  if(!lines.length) return {rows:[], unmatched:[]};
-  // Detect a header row and column positions (CSV or tab-separated).
-  const split = l => l.split(/\t|,/).map(c=>c.trim());
-  const header = split(lines[0]).map(h=>h.toLowerCase());
-  const hasHeader = header.some(h=>/squad|team|club/.test(h));
-  let iName=1, iMP=2, iPts=9; // sensible defaults for FBref layout
-  if(hasHeader){
-    const find = (...names)=>header.findIndex(h=>names.includes(h));
-    iName = find("squad","team","club"); if(iName<0) iName=1;
-    iMP   = find("mp","pld","p","played"); if(iMP<0) iMP=2;
-    iPts  = find("pts","points"); if(iPts<0) iPts=9;
-  }
-  const rows=[], unmatched=[];
-  let autoRank=0;
-  lines.slice(hasHeader?1:0).forEach(line=>{
-    const cells = split(line);
-    if(!cells.length) return;
-    let name, played=0, points=0;
-    if(hasHeader){
-      name = (cells[iName]||"").trim();
-      played = parseInt(cells[iMP],10); if(isNaN(played)) played=0;
-      points = parseInt(cells[iPts],10); if(isNaN(points)) points=0;
-    } else {
-      // plain paste: rank + club per row, ignore other numbers
-      const nameCells = cells.filter(c=>c && !/^\d{1,3}$/.test(c));
-      name = (nameCells.sort((a,b)=>b.length-a.length)[0]||"").trim();
-    }
-    if(!name || /^(rk|pos|team|club|squad|pld|pts|gd)$/i.test(name)) return;
-    // Clean stray annotations FBref can attach to a name cell, e.g. "Est: MK Dons".
-    name = name.replace(/^est:?\s*/i,"").replace(/^\d{4}\s+/,"").replace(/\s{2,}/g," ").trim();
-    if(!name) return;
-    autoRank++;
-    const canon = canonicalName(name, slug);
-    rows.push({rank:autoRank, name:canon, played, points});
-    if(!knownNorm.has(normClub(canon))) unmatched.push(name);
-  });
-  return {rows, unmatched};
-}
-function importTable(slug){
-  const box = $("imp_"+slug); const msg = $("impmsg_"+slug);
-  const {rows,unmatched} = parseTable(box.value, slug);
-  if(!rows.length){ msg.innerHTML='<span style="color:var(--red)">No rows found. Paste a table with a club per row.</span>'; return; }
-  APP.pastedTables = APP.pastedTables||{};
-  APP.pastedTables[slug] = rows;
-  _persistTables();
-  const promoted = settledClubs(slug,"top")||[];
-  const relegated = settledClubs(slug,"bottom")||[];
-  let out = `Imported <b>${rows.length}</b> rows. `+
-    `Top 3: <b>${promoted.join(", ")}</b>. Bottom 3: <b>${relegated.join(", ")}</b>.`;
-  if(unmatched.length){
-    // Diagnostic: show the exact characters (and codes) of each unmatched name,
-    // plus the closest club in the list, so a hidden-character mismatch is visible.
-    const known = teamsFor(slug).map(t=>t.name);
-    const detail = unmatched.map(u=>{
-      const codes = [...u].map(c=>c.charCodeAt(0)).join(",");
-      const near = known.find(k=>normClub(k)===normClub(u));
-      return `"${u}" [chars: ${codes}]${near?` (should match "${near}")`:` — no club normalises the same; list has: ${known.slice(0,3).join(", ")}…`}`;
-    }).join("<br>");
-    out += `<br><span style="color:var(--amber)">⚠️ ${unmatched.length} name`+
-      `${unmatched.length===1?"":"s"} didn't match this division's club list:<br>${detail}<br>`+
-      `Those rows won't score until the names match.</span>`;
-  }
-  msg.innerHTML = out;
-}
-function _persistTables(){ try{ localStorage.setItem("matchday_tables", JSON.stringify(APP.pastedTables||{})); }catch(e){} }
-
-// ===== tabs + init =======================================================
-const rendered={};
-const LIVE_VIEWS = new Set(["league","picks","results","tables"]);
-function show(name, force){
-  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.view===name));
-  document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id==="view-"+name));
-  if(force || LIVE_VIEWS.has(name) || !rendered[name]){
-    ({season:renderSeasonPicks,league:renderLeague,results:()=>renderResults(currentIdx()),today:renderToday,
-      tables:renderTables,picks:()=>renderPicks(currentIdx()),help:renderHelp}[name]||(()=>{}))();
-    rendered[name]=true;
-  }
-  if(!force) window.scrollTo({top:0,behavior:"smooth"});
-}
-function currentIdx(){ const wk=currentWeek(); return Math.max(0,APP.weeks.indexOf(wk)); }
-
-$("tabs").addEventListener("click",e=>{const t=e.target.closest(".tab");if(t)show(t.dataset.view);});
-$("refresh").addEventListener("click",()=>location.reload());
-$("cog").addEventListener("click",()=>show("help"));
-
-async function init(){
-  // Try Firebase (identity + shared picks). Falls back to solo/local if not configured.
-  await fbInit();
-  // restore local picks first (used solo, or as backup)
-  try{ APP.picks = JSON.parse(localStorage.getItem("matchday_picks")) || {}; }catch(e){ APP.picks={}; }
-  APP.picks.weekly = APP.picks.weekly || {};
-  APP.picks.season = APP.picks.season || {champion:"",promRel:{}};
-  // If arriving via a personal link, join the league and load THIS player's picks.
-  await fbJoin();
-  APP.leagueCode = APP.leagueCode || (FB.leagueId || "—");
-  $("league-code").textContent = APP.leagueCode;
-  if(APP.leagueName){ const el=document.querySelector(".league-switch span"); if(el) el.textContent = "🏆 "+APP.leagueName; }
-  try{ APP.pastedTables = JSON.parse(localStorage.getItem("matchday_tables")) || {}; }catch(e){ APP.pastedTables={}; }
-  // Lower-league club lists come from a committed CSV (single source, no mismatch).
-  APP.lowerClubs = {};
-  try{
-    const csv = await fetch("data/divisions_lower.csv").then(r=>r.ok?r.text():"");
-    const slugByName = {"league one":"league_one","league two":"league_two"};
-    csv.split(/\r?\n/).slice(1).forEach(line=>{
-      const [div,club] = line.split(",").map(s=>(s||"").trim());
-      if(!div||!club) return;
-      const slug = slugByName[div.toLowerCase()];
-      if(!slug) return;
-      (APP.lowerClubs[slug] = APP.lowerClubs[slug]||[]).push(club);
-    });
-  }catch(e){ /* CSV optional; dropdowns fall back to bundled data */ }
-  try{
-    const season = await loadJSON("data/season.json");
-    APP.season = season.season;
-    APP.seasonMeta = season;
-    APP.divisions = await loadJSON("data/divisions.json").catch(()=>null);
-    APP.standings = await loadJSON("data/standings.json").catch(()=>null);
-    const total = season.totalGameweeks || 38;
-    for(let g=1; g<=total; g++){
-      const num = String(g).padStart(2,"0");
-      try{ APP.weeks.push(await loadJSON(`data/2026/week-${num}.json`)); }catch(e){}
-    }
-    APP.weeks.sort((a,b)=>a.gameweek-b.gameweek);
-  }catch(e){
-    $("predict-body").innerHTML = `<div class="empty"><span class="big">⚠️</span>Couldn't load fixture data.<br>Make sure the <b>data/</b> folder is deployed alongside this page.</div>`;
-    return;
-  }
-  renderSeasonPicks();
-  renderPredict();
-  // Pre-load the player list into cache so League/Picks never render empty due to
-  // Firebase auth still settling. Then refresh whatever view is showing.
-  if(FB.ready && FB.leagueId){
-    try{
-      await fbLoadPlayers();               // populates APP.playersCache
-      const active = document.querySelector(".view.active")?.id?.replace("view-","");
-      if(active) show(active, true);       // re-render current tab with players loaded
     }catch(e){}
+  })();
+  function saveLocal(){localStorage.setItem(LS, JSON.stringify({active:local,memberships}));}
+  function rememberMembership(leagueId,playerId,isScorer,name){
+    const ex=memberships.find(m=>m.leagueId===leagueId);
+    if(ex){Object.assign(ex,{leagueId,playerId,isScorer,name:name||ex.name||''});}
+    else memberships.push({leagueId,playerId,isScorer,name:name||''});
+    saveLocal();
   }
-}
-init();
-</script>
+  function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window.__tt);window.__tt=setTimeout(()=>t.classList.remove('show'),2500);}
+  function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+  function randomId(n){const c='ABCDEFGHJKMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<n;i++)s+=c[Math.floor(Math.random()*c.length)];return s;}
+  function blankPred(){ return {season:{afc:'',nfc:'',superBowl:''}, weeks:{}, playoffs:{}}; }
+  function blankResults(){ return {season:{afc:'',nfc:'',superBowl:''}}; }
+  function myPred(){
+    if(!LG||!LG.players||!LG.players[local.playerId]) return blankPred();
+    const p=LG.players[local.playerId].pred||blankPred();
+    p.season=p.season||{afc:'',nfc:'',superBowl:''}; p.weeks=p.weeks||{}; p.playoffs=p.playoffs||{};
+    return p;
+  }
+
+  async function waitForFb(){
+    let tries=0; while((!fbReady||!myUid) && !fbError && tries<60){ await new Promise(r=>setTimeout(r,100)); tries++; }
+    if(fbError) throw new Error(fbError);
+    if(!fbReady||!myUid) throw new Error('Could not connect to Firebase.');
+  }
+  function leagueRef(id){ return db.collection('nfl_leagues').doc(id); }
+  function playersCol(id){ return leagueRef(id).collection('players'); }
+
+  async function createLeague(name, scorerName){
+    await waitForFb();
+    let leagueId=null;
+    for(let attempt=0; attempt<5; attempt++){
+      const candidate=randomId(6);
+      const exists=await leagueRef(candidate).get();
+      if(!exists.exists){ leagueId=candidate; break; }
+    }
+    if(!leagueId) throw new Error('Could not allocate a league code, try again.');
+    await leagueRef(leagueId).set({
+      name, scorerName,
+      scorerUid: myUid,          // the only thing that grants scorer power
+      createdAt: Date.now(),
+      results: blankResults()
+    });
+    // The scorer is also player #1 - created already claimed to this device.
+    const playerId=randomId(10);
+    await playersCol(leagueId).doc(playerId).set({
+      name: scorerName, uid: myUid, pred: blankPred(), joinedAt: Date.now()
+    });
+    local={leagueId,playerId,isScorer:true};
+    rememberMembership(leagueId, playerId, true, name);
+    return leagueId;
+  }
+
+  // ===== JOIN LINKS (identity model C) =====================================
+  // The SCORER creates a record for each person from Manage Players. Each has
+  // a random 10-char playerId. Their personal link is  ?p=<playerId>. Opening
+  // it "claims" the record to that device (sets uid), and works on ANY device
+  // - so one human is one record across laptop and phone, all season. This is
+  // the fix for the World Cup duplicate bug (same person joining twice).
+  //
+  // The link IS the identity: possession of it means you are that player. Fine
+  // for a bragging-rights league among friends (agreed). Not for money.
+
+  // Scorer adds a player to the roster. Returns the new playerId.
+  async function addPlayer(displayName){
+    await waitForFb();
+    if(!local.isScorer) throw new Error('Only the scorer can add players');
+    const playerId=randomId(10);
+    await playersCol(local.leagueId).doc(playerId).set({
+      name: displayName.trim(), uid: '', pred: blankPred(), joinedAt: Date.now()
+    });
+    return playerId;
+  }
+
+  // Build the shareable link for a player.
+  function playerLink(playerId){
+    return location.origin + location.pathname + '?lg=' + local.leagueId + '&p=' + playerId;
+  }
+
+  // Someone opens ?lg=CODE&p=PID - claim that record to this device.
+  async function claimPlayer(leagueId, playerId){
+    await waitForFb();
+    const lref=leagueRef(leagueId);
+    const lsnap=await lref.get();
+    if(!lsnap.exists) throw new Error('That league link is not valid.');
+    const pref=playersCol(leagueId).doc(playerId);
+    const psnap=await pref.get();
+    if(!psnap.exists) throw new Error('That player link is not valid.');
+    const pdata=psnap.data();
+    // Claim: bind this record to the current device unless already ours.
+    if(pdata.uid !== myUid){
+      await pref.update({uid: myUid});   // rules allow: link-holder may claim
+    }
+    const isScorer = lsnap.data().scorerUid === myUid;
+    local={leagueId, playerId, isScorer};
+    rememberMembership(leagueId, playerId, isScorer, lsnap.data().name || leagueId);
+    return {name: pdata.name, leagueName: lsnap.data().name};
+  }
+
+  async function listenLeague(){
+    await waitForFb();
+    if(unsubLeague) unsubLeague();
+    if(unsubPlayers) unsubPlayers();
+
+    unsubLeague = leagueRef(local.leagueId).onSnapshot(snap=>{
+      if(!snap.exists){ toast('League not found'); return; }
+      const data=snap.data();
+      LG = LG || {};
+      LG.name = data.name;
+      LG.scorerUid = data.scorerUid;
+      LG.results = data.results || blankResults();
+      LG.players = LG.players || {};
+      local.isScorer = (data.scorerUid === myUid);
+      const mem=memberships.find(m=>m.leagueId===local.leagueId);
+      if(mem){ mem.name=data.name||mem.name; mem.isScorer=local.isScorer; }
+      saveLocal(); render();
+    }, ()=>toast('Connection issue'));
+
+    unsubPlayers = playersCol(local.leagueId).onSnapshot(qs=>{
+      LG = LG || {};
+      LG.players = {};
+      qs.forEach(d=>{ LG.players[d.id]=d.data(); });
+      render();
+    }, ()=>toast('Connection issue'));
+  }
+
+  function savePredSoon(){
+    clearTimeout(predTimer);
+    predTimer=setTimeout(async()=>{
+      try{ await playersCol(local.leagueId).doc(local.playerId).update({pred: myPred()}); }
+      catch(e){ toast('Save failed — is this your link?'); }
+    }, 350);
+  }
+  function saveResultsSoon(){
+    clearTimeout(resultsTimer);
+    resultsTimer=setTimeout(async()=>{
+      try{ await leagueRef(local.leagueId).update({results: LG.results}); }
+      catch(e){ toast('Save failed — scorer only'); }
+    }, 350);
+  }
+
+  // ===== DATA LOADING =====================================================
+  // Reads the pipeline's files: season.json + one file per week. The fetcher
+  // (scripts/fetch_results.py, run by GitHub Actions) writes these. We only
+  // ever read them.
+  async function loadGameData(){
+    const bust = '?t=' + Date.now();   // GitHub Pages caches hard
+    const sres = await fetch(SEASON_URL + bust, {cache:'no-store'});
+    if(!sres.ok) throw new Error('Could not load season.json');
+    SEASON = await sres.json();
+
+    const total = SEASON.totalWeeks || 18;
+    const nums = Array.from({length: total}, (_,i)=>i+1);
+
+    // Fetch all weeks in parallel. A missing week is tolerated (the season may
+    // not be fully built yet) - we just skip it rather than failing outright.
+    const results = await Promise.all(nums.map(async n=>{
+      try{
+        const r = await fetch(weekUrl(n) + bust, {cache:'no-store'});
+        if(!r.ok) return null;
+        const w = await r.json();
+        return (w && Array.isArray(w.games)) ? w : null;
+      }catch(e){ return null; }
+    }));
+
+    WEEKS = results.filter(Boolean).sort((a,b)=>a.week-b.week);
+    if(!WEEKS.length) throw new Error('No week data found');
+
+    DATA_UPDATED = WEEKS.reduce((max,w)=> {
+      const t = w.updated ? Date.parse(w.updated) : 0;
+      return t>max ? t : max;
+    }, 0);
+
+    GAMES = true; // legacy flag: "data is loaded"
+    if(!ui.week) ui.week = currentPlayableWeek();
+  }
+
+  function weekUrl(n){ return DATA_BASE + '/week-' + String(n).padStart(2,'0') + '.json'; }
+  function teamName(code){ return TEAM_META[code]?.name || code; }
+  function gameLabel(g){ return teamName(g.away)+' @ '+teamName(g.home); }
+  function getRegularWeeks(){ return WEEKS || []; }
+  function getWeek(weekNo){ return getRegularWeeks().find(w=>w.week===weekNo); }
+  function allGames(){ return getRegularWeeks().flatMap(w=>w.games||[]); }
+  // Playoffs: the pipeline only builds the regular season. The bracket isn't
+  // known until January, so there are no playoff files yet and this stays
+  // empty - the playoff UI simply doesn't render. When we add postseason
+  // support, populate PLAYOFFS with {stage, games:[...]} and everything below
+  // works unchanged, because playoff games lock per-game just like the rest.
+  function getPlayoffs(){ return PLAYOFFS || []; }
+
+  // ===== PER-GAME LOCKS ====================================================
+  // THE core rule: a game is open until its own kickoff, then it locks.
+  // There is no weekly lock and no lockMode flag - those were removed because
+  // the real 2026 schedule breaks them (Wed 9 Sep opener, Thu Melbourne game,
+  // Thanksgiving Eve, Christmas Friday). Per-game locking needs no special
+  // cases, and makes pick-ahead free: any unplayed game is pickable.
+  function gameLockMs(g){ return g && g.kickoff ? Date.parse(g.kickoff) : null; }
+  function gameLocked(g){ const ms=gameLockMs(g); return ms!=null ? Date.now()>=ms : false; }
+  function gameMoved(g){ return !!(g && g.movedFrom); }
+
+  // A week is "fully locked" only when every game in it has kicked off. Used
+  // for display (the week chip) - never for deciding if a pick is allowed.
+  function weekLocked(weekNo){
+    const w=getWeek(weekNo); if(!w||!w.games?.length) return false;
+    return w.games.every(gameLocked);
+  }
+  function nextKickoffMs(weekNo){
+    const w=getWeek(weekNo); if(!w) return null;
+    const future=(w.games||[]).map(gameLockMs).filter(ms=>ms!=null && ms>Date.now());
+    return future.length? Math.min(...future) : null;
+  }
+  // The week to land on: the first with any game still open, else the last.
+  function currentPlayableWeek(){
+    const weeks=getRegularWeeks();
+    const open=weeks.find(w=>(w.games||[]).some(g=>!gameLocked(g)));
+    return open ? open.week : (weeks[weeks.length-1]?.week || 1);
+  }
+
+  // ===== SEASON PICKS (AFC / NFC / Super Bowl) ==============================
+  // Lock at the first kickoff of the season - i.e. the moment the season
+  // starts. Derived from the data, so there's no separate deadline to manage.
+  function getSeasonLock(){
+    const times=allGames().map(gameLockMs).filter(ms=>ms!=null);
+    return times.length? Math.min(...times) : null;
+  }
+  function seasonLocked(){ const ms=getSeasonLock(); return ms!=null ? Date.now()>=ms : false; }
+  // A playoff round is fully locked when all its games have kicked off.
+  function playoffRoundLocked(stage){
+    const rd=getPlayoffs().find(p=>p.stage===stage);
+    if(!rd || !rd.games?.length) return false;
+    return rd.games.every(gameLocked);
+  }
+
+  // ===== STALENESS (second alarm) ==========================================
+  // If the pipeline silently stops (e.g. GitHub disables the cron on an idle
+  // repo), the scorer gets a nudge. Only shown in-season, only to the scorer.
+  function dataIsStale(){
+    if(!DATA_UPDATED || !SEASON) return false;
+    const days = SEASON.staleAfterDays || 8;
+    const seasonStarted = seasonLocked();
+    const lastKick = Math.max(...allGames().map(gameLockMs).filter(ms=>ms!=null), 0);
+    const seasonOver = lastKick && Date.now() > lastKick + 7*864e5;
+    if(!seasonStarted || seasonOver) return false;
+    return (Date.now() - DATA_UPDATED) > days*864e5;
+  }
+  function scoreGame(pred, act){
+    // act is the object from actualResultFromGame, or null if not played.
+    if(!act) return null;            // game not played -> not yet scored
+    if(act.tie) return 0;            // played tie -> nobody's winner pick scores
+    if(!pred || !pred.winner) return 0;
+    if(pred.winner===act.winner && pred.margin===act.margin) return 6;
+    if(pred.winner===act.winner) return 3;
+    return 0;
+  }
+  function marginBracket(h,a){
+    if(h==null||a==null||h===a) return null; // tie -> no margin bracket
+    const margin=Math.abs(Number(h)-Number(a));
+    if(margin<=3) return '1to3';
+    if(margin<=8) return '4to8';
+    if(margin<=16) return '9to16';
+    return '17plus';
+  }
+  function actualResultFromGame(g){
+    if(g.homeScore==null || g.awayScore==null) return null; // not played yet
+    if(Number(g.homeScore)===Number(g.awayScore)) return {tie:true, winner:null, margin:null};
+    return {
+      tie:false,
+      winner: Number(g.homeScore)>Number(g.awayScore)?g.home:g.away,
+      margin: marginBracket(g.homeScore,g.awayScore)
+    };
+  }
+  function actualSeasonWinners(){ return LG?.results?.season || {afc:'',nfc:'',superBowl:''}; }
+  function scoreSeason(pred){
+    const act=actualSeasonWinners(); let pts=0;
+    if(pred?.season?.afc && act.afc && pred.season.afc===act.afc) pts+=5;
+    if(pred?.season?.nfc && act.nfc && pred.season.nfc===act.nfc) pts+=5;
+    if(pred?.season?.superBowl && act.superBowl && pred.season.superBowl===act.superBowl) pts+=5;
+    return pts;
+  }
+  function scorePlayer(player){
+    const pred=player.pred||blankPred(); let total=0, exactish=0, winnerOnly=0;
+    getRegularWeeks().forEach(w=>w.games.forEach(g=>{
+      const act=actualResultFromGame(g); if(!act) return;
+      const p=pred.weeks?.[g.id]; const pts=scoreGame(p,act); if(pts==null) return;
+      total+=pts; if(pts===6) exactish++; else if(pts===3) winnerOnly++;
+    }));
+    getPlayoffs().forEach(round=>round.games.forEach(g=>{
+      const act=actualResultFromGame(g); if(!act) return;
+      const p=pred.playoffs?.[g.id]; const pts=scoreGame(p,act); if(pts==null) return;
+      total+=pts; if(pts===6) exactish++; else if(pts===3) winnerOnly++;
+    }));
+    const seasonPts=scoreSeason(pred);
+    return {total: total+seasonPts, sixes: exactish, threes: winnerOnly, seasonPts};
+  }
+
+  function render(){
+    const app=document.getElementById('app');
+    const savebar=document.getElementById('savebar');
+    const chipWrap=document.getElementById('leagueChipWrap');
+    if(!GAMES){ app.innerHTML='<div class="card"><p class="lead">Loading NFL data…</p></div>'; return; }
+    if(!local.leagueId || !LG){
+      savebar.classList.add('hidden'); chipWrap.innerHTML='';
+      renderLobby(app); return;
+    }
+    savebar.classList.remove('hidden');
+    chipWrap.innerHTML='<div class="card" style="padding:10px 14px;border-radius:999px;display:inline-block;background:rgba(255,255,255,.06)">🏆 <b>'+esc(LG.name)+'</b> · code <b>'+esc(local.leagueId)+'</b></div>';
+    document.getElementById('appTitle').textContent=LG.name||'';
+    document.getElementById('appSub').textContent=(local.isScorer?'Scorer':'Player')+' · '+(LG.players?.[local.playerId]?.name || '');
+
+    app.innerHTML='';
+    const modebar=document.createElement('div'); modebar.className='modebar';
+    const modes=[['predict','🔮 Predict'],['leaderboard','📊 League'],['schedule','📅 Schedule'],['rules','ℹ️ Rules']];
+    if(local.isScorer){ modes.splice(2,0,['results','✍️ Results']); modes.push(['players','👥 Players']); }
+    modes.forEach(([k,l])=>{ const c=document.createElement('div'); c.className='chip'+(ui.mode===k?' active':''); c.textContent=l; c.onclick=()=>{ui.mode=k; render();}; modebar.appendChild(c); });
+    app.appendChild(modebar);
+    if(ui.mode==='predict') renderPredict(app);
+    else if(ui.mode==='leaderboard') renderLeaderboard(app);
+    else if(ui.mode==='results') renderResults(app);
+    else if(ui.mode==='schedule') renderSchedule(app);
+    else if(ui.mode==='players' && local.isScorer) renderManagePlayers(app);
+    else renderRules(app);
+  }
+
+  // ===== MANAGE PLAYERS (scorer only) ======================================
+  // Add each of your six by name; the app makes a personal link for each.
+  // Copy the links into WhatsApp. Shows who has opened their link (claimed)
+  // and who hasn't yet.
+  function renderManagePlayers(host){
+    const players=LG.players||{};
+    const ids=Object.keys(players).sort((a,b)=>(players[a].joinedAt||0)-(players[b].joinedAt||0));
+
+    const add=document.createElement('div'); add.className='card';
+    add.innerHTML='<h2>👥 Players & links</h2>'+
+      '<p class="lead">Add each person by name, then send them their personal link. The link works on any device and remembers their picks all season.</p>'+
+      '<div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">'+
+        '<div style="flex:1 1 200px"><label class="fld">Add a player</label><input class="txt" id="newPlayerName" placeholder="e.g. Dave" /></div>'+
+        '<button class="btn btn-green" id="addPlayerBtn" style="flex:0 0 auto">Add & make link</button>'+
+      '</div>';
+    host.appendChild(add);
+
+    const list=document.createElement('div'); list.className='card';
+    let rows='<h2>Your league ('+ids.length+')</h2>';
+    if(!ids.length){ rows+='<p class="lead">No players yet — add your first above.</p>'; }
+    ids.forEach(pid=>{
+      const p=players[pid];
+      const claimed=!!(p.uid && p.uid.length);
+      const isMe=pid===local.playerId;
+      const link=playerLink(pid);
+      rows+='<div class="lbrow" style="align-items:flex-start;flex-wrap:wrap">'+
+        '<div class="rank">'+(claimed?'✅':'⏳')+'</div>'+
+        '<div class="nm" style="flex:1 1 auto">'+esc(p.name)+(isMe?' <small>(you)</small>':'')+
+          '<small>'+(claimed?'link opened — playing':'link not opened yet')+'</small>'+
+          '<input class="txt linkbox" readonly value="'+esc(link)+'" style="font-size:11px;margin-top:6px" data-link="'+esc(link)+'"/>'+
+        '</div>'+
+        '<button class="btn btn-ghost copyLink" data-link="'+esc(link)+'" style="flex:0 0 auto">Copy link</button>'+
+      '</div>';
+    });
+    rows+='<p class="tiny" style="margin-top:10px">✅ = they’ve opened their link and are playing. ⏳ = not opened yet. You can re-send a link any time — it always works.</p>'+
+          '<button class="btn btn-ghost" id="copyAll" style="margin-top:8px">Copy all links (for WhatsApp)</button>';
+    list.innerHTML=rows;
+    host.appendChild(list);
+
+    add.querySelector('#addPlayerBtn').onclick=async()=>{
+      const nm=add.querySelector('#newPlayerName').value.trim();
+      if(!nm){ toast('Enter a name'); return; }
+      try{ await addPlayer(nm); add.querySelector('#newPlayerName').value=''; toast(nm+' added'); }
+      catch(e){ toast(e.message||'Could not add player'); }
+    };
+    add.querySelector('#newPlayerName').addEventListener('keydown',e=>{ if(e.key==='Enter') add.querySelector('#addPlayerBtn').click(); });
+
+    const copy=(text,msg)=>{ (navigator.clipboard?.writeText(text)||Promise.reject()).then(()=>toast(msg||'Copied')).catch(()=>{ toast('Copy not available — long-press the box to copy'); }); };
+    list.querySelectorAll('.copyLink').forEach(b=>b.onclick=()=>copy(b.dataset.link,'Link copied'));
+    list.querySelectorAll('.linkbox').forEach(i=>i.onclick=()=>{ i.select(); });
+    const copyAllBtn=list.querySelector('#copyAll');
+    if(copyAllBtn) copyAllBtn.onclick=()=>{
+      const text=ids.map(pid=>players[pid].name+': '+playerLink(pid)).join('\n');
+      copy(text,'All links copied — paste into WhatsApp');
+    };
+  }
+
+  // ===== EMPTY STATE =======================================================
+  // Invite-only: there is deliberately NO join form here. A join form is what
+  // spawned duplicate players in the World Cup app (same person joining on a
+  // laptop and again on a phone). Entry is by personal link only - that's
+  // build item 5. Until then this shows the real schedule so the URL is a
+  // useful page rather than a dead end.
+  function renderLobby(app){
+    app.innerHTML='';
+
+    if(memberships.length){
+      const c=document.createElement('div'); c.className='card';
+      c.innerHTML='<h2>Your leagues</h2><p class="lead">Tap one to reopen it on this device.</p>'+
+        memberships.map(m=>'<div class="lbrow" data-lg="'+esc(m.leagueId)+'" style="cursor:pointer"><div class="rank">🏈</div><div class="nm">'+esc(m.name||m.leagueId)+'<small>code '+esc(m.leagueId)+(m.isScorer?' · you are the scorer':'')+'</small></div><div class="sc" style="font-size:16px">›</div></div>').join('');
+      app.appendChild(c);
+      c.querySelectorAll('[data-lg]').forEach(r=>r.onclick=()=>{ const m=memberships.find(x=>x.leagueId===r.dataset.lg); local={leagueId:m.leagueId, playerId:m.playerId, isScorer:m.isScorer}; saveLocal(); listenLeague(); render(); });
+    }
+
+    const g=document.createElement('div'); g.className='card';
+    g.innerHTML='<h2>👋 You are browsing as a guest</h2>'+
+      '<p class="lead">Hit Paydirt is invite-only. To play, you need your own personal link — ask Richard and he will send you one.</p>'+
+      '<p class="tiny">Your link works on any device and remembers your picks. Keep the message somewhere safe.</p>'+
+      '<p class="tiny" style="margin-top:10px">In the meantime, the full '+SEASON_YEAR+' schedule is below — have a look at what is coming.</p>';
+    app.appendChild(g);
+
+    // Guests get the real schedule. No picking, nothing to break.
+    renderSchedule(app);
+  }
+
+  function renderPredict(host){
+    const pred=myPred();
+
+    // Second alarm: if the results pipeline goes quiet mid-season, nudge the
+    // scorer. Only the scorer sees this - players can't act on it anyway.
+    if(local.isScorer && dataIsStale()){
+      const st=document.createElement('div'); st.className='banner lock';
+      st.innerHTML='<b>⚠️ Results have not updated in over '+((SEASON&&SEASON.staleAfterDays)||8)+' days.</b>'+
+        '<br><span class="tiny">The automatic fetcher may have stopped. Check the Actions tab in the repo — GitHub disables scheduled jobs on repos that sit idle. See data/HOW-TO-EDIT.md if you need to enter scores by hand.</span>';
+      host.appendChild(st);
+    }
+    const golden=document.createElement('div'); golden.className='card';
+    const seasonLock=seasonLocked();
+    const sbOpts = [pred.season.afc, pred.season.nfc].filter(Boolean);
+    const pick=(code)=> code ? teamBadge(code,26) : '';
+    golden.innerHTML='<h2>Season locks '
+      +(pred.season.afc?pick(pred.season.afc):'')+(pred.season.nfc?pick(pred.season.nfc):'')
+      +(pred.season.superBowl?'<span class="confPill" style="background:#b8860b">SB '+esc(pred.season.superBowl)+'</span>':'')+'</h2><p class="lead">Before the season starts, everyone locks in AFC champion, NFC champion and Super Bowl winner. Super Bowl winner must be one of your conference winners.</p>'+
+      '<div class="grid2"><div><label class="fld">AFC champion (+5)<span class="confPill" style="background:'+CONF_COLOR.AFC+'">AFC</span></label><select id="afcPick" '+(seasonLock?'disabled':'')+'><option value="">— choose —</option>'+AFC_TEAMS.map(t=>'<option value="'+t+'" '+(pred.season.afc===t?'selected':'')+'>'+teamName(t)+'</option>').join('')+'</select></div>'+
+      '<div><label class="fld">NFC champion (+5)<span class="confPill" style="background:'+CONF_COLOR.NFC+'">NFC</span></label><select id="nfcPick" '+(seasonLock?'disabled':'')+'><option value="">— choose —</option>'+NFC_TEAMS.map(t=>'<option value="'+t+'" '+(pred.season.nfc===t?'selected':'')+'>'+teamName(t)+'</option>').join('')+'</select></div></div>'+
+      '<label class="fld">Super Bowl winner (+5)</label><select id="sbPick" '+(seasonLock?'disabled':'')+'><option value="">— choose —</option>'+sbOpts.map(t=>'<option value="'+t+'" '+(pred.season.superBowl===t?'selected':'')+'>'+teamName(t)+'</option>').join('')+'</select>'+
+      '<p class="tiny">'+(seasonLock
+          ? '🔒 Locked — the season has started.'
+          : 'Locks when the season kicks off: <b>'+formatKickoff(new Date(getSeasonLock()).toISOString())+'</b> ('+timeUntil(getSeasonLock())+' away).')+'</p>';
+    host.appendChild(golden);
+    if(!seasonLock){
+      golden.querySelector('#afcPick').onchange=e=>{ pred.season.afc=e.target.value; if(pred.season.superBowl && ![pred.season.afc,pred.season.nfc].includes(pred.season.superBowl)) pred.season.superBowl=''; savePredSoon(); render(); };
+      golden.querySelector('#nfcPick').onchange=e=>{ pred.season.nfc=e.target.value; if(pred.season.superBowl && ![pred.season.afc,pred.season.nfc].includes(pred.season.superBowl)) pred.season.superBowl=''; savePredSoon(); render(); };
+      golden.querySelector('#sbPick').onchange=e=>{ pred.season.superBowl=e.target.value; savePredSoon(); };
+    }
+
+    const hint=document.createElement('p'); hint.className='tiny'; hint.style.margin='4px 2px 0';
+    hint.innerHTML='Every game locks at its own kickoff — you can pick as far ahead as you like.';
+    host.appendChild(hint);
+
+    const weekbar=document.createElement('div'); weekbar.className='weekbar';
+    getRegularWeeks().forEach(w=>{ const c=document.createElement('div'); c.className='chip'+(ui.week===w.week?' active':'')+(weekLocked(w.week)?' locked':''); c.textContent='Week '+w.week; c.onclick=()=>{ui.week=w.week; render();}; weekbar.appendChild(c); });
+    getPlayoffs().forEach(round=>{ const c=document.createElement('div'); c.className='chip'+(ui.week===round.stage?' active':'')+(playoffRoundLocked(round.stage)?' locked':''); c.textContent=PLAYOFF_LABELS[round.stage]; c.onclick=()=>{ui.week=round.stage; render();}; weekbar.appendChild(c); });
+    host.appendChild(weekbar);
+
+    if(typeof ui.week==='number') renderRegularWeek(host, ui.week);
+    else renderPlayoffRound(host, ui.week);
+  }
+
+  function renderRegularWeek(host, weekNo){
+    const week=getWeek(weekNo); if(!week) return;
+    const games=week.games||[];
+    // Under per-game locks a week is usually MIXED - some games gone, some open.
+    // The banner reports that state rather than pretending the week is one thing.
+    const openGames=games.filter(g=>!gameLocked(g));
+    const pred=myPred();
+    const unpicked=openGames.filter(g=>!(pred.weeks?.[g.id]?.winner && pred.weeks?.[g.id]?.margin));
+    const nextMs=nextKickoffMs(weekNo);
+    const allLocked=openGames.length===0;
+
+    const b=document.createElement('div'); b.className='banner '+(allLocked?'lock':'open');
+    if(allLocked){
+      b.innerHTML='<b>Week '+weekNo+' is done.</b> Every game has kicked off — all picks are visible.';
+    } else {
+      b.innerHTML='<b>Week '+weekNo+': '+openGames.length+' of '+games.length+' still open.</b>'
+        + (nextMs? ' Next game locks in <b>'+timeUntil(nextMs)+'</b> ('+formatKickoff(new Date(nextMs).toISOString())+').' : '')
+        + (unpicked.length? '<br><span class="tiny" style="color:#ffb020">⚠️ You have '+unpicked.length+' pick'+(unpicked.length>1?'s':'')+' still to make this week.</span>'
+                          : '<br><span class="tiny" style="color:#19d97e">✓ All your picks are in for the open games.</span>');
+    }
+    host.appendChild(b);
+    // Each card locks itself from its own kickoff - no week-level flag passed.
+    games.forEach(g=>host.appendChild(renderGameCard(g, 'week')));
+  }
+
+  function renderPlayoffRound(host, stage){
+    const round=getPlayoffs().find(p=>p.stage===stage); if(!round) return;
+    const locked=playoffRoundLocked(stage);
+    const b=document.createElement('div'); b.className='banner '+(locked?'lock':'wait');
+    const openPo=(round.games||[]).filter(g=>!gameLocked(g));
+    b.innerHTML = locked ? '<b>'+PLAYOFF_LABELS[stage]+' is done.</b> All picks visible.'
+                         : '<b>'+PLAYOFF_LABELS[stage]+': '+openPo.length+' of '+(round.games||[]).length+' still open.</b> Each game locks at its own kickoff.';
+    host.appendChild(b);
+    round.games.forEach(g=>host.appendChild(renderGameCard(g, 'playoff', locked)));
+  }
+
+  function renderGameCard(g, type, _ignored){
+    const pred=myPred();
+    const p = type==='week' ? (pred.weeks[g.id]||{}) : (pred.playoffs[g.id]||{});
+    const act=actualResultFromGame(g);
+    const pts=act?scoreGame(p,act):null;
+    // PER-GAME LOCK: this card decides for itself, from its own kickoff.
+    // Nothing is passed in - that's what makes mixed states within a week work.
+    const locked=gameLocked(g);
+    const hasPick=!!(p.winner && p.margin);
+    const box=document.createElement('div'); box.className='game'+(locked?' is-locked':'');
+    const flag = gameMoved(g)
+      ? '<span class="movedFlag" title="Kickoff moved from '+esc(formatDateTime(g.movedFrom))+'">⚠️ moved</span>' : '';
+    const neutral = g.neutralSite ? '<span class="tinyTag">neutral</span>' : '';
+    // Winner highlighting once the game is final
+    const winner = act && !act.tie ? act.winner : null;
+    const cls=(code)=> winner ? (winner===code?' win':' lose') : '';
+    box.innerHTML=
+      '<div class="accent" style="background:linear-gradient(90deg,'+teamC1(g.away)+' 0%,'+teamC1(g.away)+' 50%,'+teamC1(g.home)+' 50%,'+teamC1(g.home)+' 100%)"></div>'+
+      '<div class="meta"><span>'+esc(formatKickoff(g.kickoff))+' '+flag+' '+neutral+'</span><span>'+(locked?'🔒 locked':'open')+'</span></div>'+
+      '<div class="matchup">'+
+        '<div class="side away'+cls(g.away)+'">'+teamBadge(g.away,36)+'<span class="nm">'+esc(teamNick(g.away))+'</span></div>'+
+        '<div class="vs">@</div>'+
+        '<div class="side home'+cls(g.home)+'"><span class="nm">'+esc(teamNick(g.home))+'</span>'+teamBadge(g.home,36)+'</div>'+
+      '</div>'+
+      (!locked && !hasPick ? '<div class="tiny" style="color:#ffb020;margin:-2px 0 6px">No pick yet</div>' : '')+
+      '<div class="pickerRow"><div><label class="fld">Winner</label><select data-kind="winner"><option value="">— choose —</option><option value="'+g.away+'" '+(p.winner===g.away?'selected':'')+'>'+esc(teamNick(g.away))+'</option><option value="'+g.home+'" '+(p.winner===g.home?'selected':'')+'>'+esc(teamNick(g.home))+'</option></select></div>'+
+      '<div><label class="fld">Margin</label><select data-kind="margin"><option value="">— choose —</option>'+MARGIN_OPTIONS.map(m=>'<option value="'+m.value+'" '+(p.margin===m.value?'selected':'')+'>'+m.label+'</option>').join('')+'</select></div></div>'+
+      (act?'<div class="scoreline"><span>'+(act.tie?'<b>Tied game</b>':teamBadge(act.winner,20)+' <b>'+esc(teamNick(act.winner))+'</b> by <b>'+displayMarginLabel(act.margin)+'</b>')+'</span> <span class="ptpill '+(pts===6?'six':pts===0?'zero':'')+'">'+(pts==null?'—':pts+' pts')+'</span></div>':'')+
+      (locked?'<button class="btn btn-ghost" data-reveal="1">See all picks</button>':'');
+
+    const inputs=box.querySelectorAll('select');
+    inputs.forEach(s=>{
+      if(locked) s.disabled=true;
+      else s.onchange=e=>{
+        const target = type==='week' ? (pred.weeks[g.id] = pred.weeks[g.id]||{}) : (pred.playoffs[g.id] = pred.playoffs[g.id]||{});
+        target[e.target.dataset.kind] = e.target.value;
+        savePredSoon();
+      };
+    });
+    const reveal=box.querySelector('[data-reveal]'); if(reveal) reveal.onclick=()=>openGameReveal(g, type);
+    return box;
+  }
+
+  function renderLeaderboard(host){
+    const c=document.createElement('div'); c.className='card';
+    c.innerHTML='<h2>League table</h2><p class="lead">Live scoring. Results arrive automatically; picks are stored in Firebase.</p>';
+    const players=Object.keys(LG.players||{}).map(pid=>({pid, name:LG.players[pid].name, sc:scorePlayer(LG.players[pid])})).sort((a,b)=>b.sc.total-a.sc.total || b.sc.sixes-a.sc.sixes);
+    players.forEach((p,i)=>{
+      const row=document.createElement('div'); row.className='lbrow';
+      row.innerHTML='<div class="rank">'+(i+1)+'</div><div class="nm">'+esc(p.name)+'<small>'+p.sc.sixes+' perfect picks · '+p.sc.threes+' winner-only · '+p.sc.seasonPts+' season pts</small></div><div class="sc">'+p.sc.total+'</div>';
+      c.appendChild(row);
+    });
+    host.appendChild(c);
+  }
+
+  function renderResults(host){
+    if(!local.isScorer){ host.innerHTML='<div class="card"><p class="lead">Only the scorer can set the official AFC / NFC / Super Bowl winners. Weekly game results arrive automatically from the results feed.</p></div>'; return; }
+    const c=document.createElement('div'); c.className='card';
+    const s=LG.results.season||{afc:'',nfc:'',superBowl:''};
+    const sbOpts=[s.afc,s.nfc].filter(Boolean);
+    c.innerHTML='<h2>Official season results</h2><p class="lead">Set these once the conference championships and Super Bowl are decided. Weekly game scores arrive automatically — you do not enter those.</p>'+
+      '<div class="grid2"><div><label class="fld">Actual AFC champion</label><select id="rAfc"><option value="">— choose —</option>'+AFC_TEAMS.map(t=>'<option value="'+t+'" '+(s.afc===t?'selected':'')+'>'+teamName(t)+'</option>').join('')+'</select></div>'+
+      '<div><label class="fld">Actual NFC champion</label><select id="rNfc"><option value="">— choose —</option>'+NFC_TEAMS.map(t=>'<option value="'+t+'" '+(s.nfc===t?'selected':'')+'>'+teamName(t)+'</option>').join('')+'</select></div></div>'+
+      '<label class="fld">Actual Super Bowl winner</label><select id="rSb"><option value="">— choose —</option>'+sbOpts.map(t=>'<option value="'+t+'" '+(s.superBowl===t?'selected':'')+'>'+teamName(t)+'</option>').join('')+'</select>';
+    host.appendChild(c);
+    c.querySelector('#rAfc').onchange=e=>{ LG.results.season.afc=e.target.value; if(LG.results.season.superBowl && ![LG.results.season.afc, LG.results.season.nfc].includes(LG.results.season.superBowl)) LG.results.season.superBowl=''; saveResultsSoon(); render(); };
+    c.querySelector('#rNfc').onchange=e=>{ LG.results.season.nfc=e.target.value; if(LG.results.season.superBowl && ![LG.results.season.afc, LG.results.season.nfc].includes(LG.results.season.superBowl)) LG.results.season.superBowl=''; saveResultsSoon(); render(); };
+    c.querySelector('#rSb').onchange=e=>{ LG.results.season.superBowl=e.target.value; saveResultsSoon(); };
+
+    const note=document.createElement('div'); note.className='card';
+    note.innerHTML='<h2>Where results come from</h2><p class="lead">Scores are fetched automatically a few times a week and committed to <b>data/'+SEASON_YEAR+'/week-NN.json</b>. You normally do nothing. If the feed ever breaks, GitHub emails you and you can enter that week by hand — see <b>data/HOW-TO-EDIT.md</b> in the repo.</p>';
+    host.appendChild(note);
+  }
+
+  function renderSchedule(host){
+    const weeks=getRegularWeeks();
+    if(!ui.schedWeek) ui.schedWeek=currentPlayableWeek();
+    if(!weeks.some(w=>w.week===ui.schedWeek)) ui.schedWeek=weeks[0]?.week||1;
+
+    const c=document.createElement('div'); c.className='card';
+    c.innerHTML='<h2>Full schedule</h2><p class="lead">The real '+SEASON_YEAR+' schedule. Every game locks at its own kickoff, shown in UK time.</p>';
+
+    // Week chips - tap to jump, so it isn't one endless list.
+    const bar=document.createElement('div'); bar.className='weekbar';
+    weeks.forEach(w=>{
+      const chip=document.createElement('div');
+      chip.className='chip'+(ui.schedWeek===w.week?' active':'')+(weekLocked(w.week)?' locked':'');
+      chip.textContent='Wk '+w.week;
+      chip.onclick=()=>{ ui.schedWeek=w.week; render(); };
+      bar.appendChild(chip);
+    });
+    c.appendChild(bar);
+
+    const w=weeks.find(x=>x.week===ui.schedWeek);
+    if(w){
+      const openN=(w.games||[]).filter(g=>!gameLocked(g)).length;
+      const block=document.createElement('div'); block.style.margin='10px 0 2px';
+      block.innerHTML='<div class="meta"><span><b>Week '+w.week+'</b></span><span>'+(openN===0?'all locked':openN+' of '+(w.games||[]).length+' open')+'</span></div>'+
+        w.games.map(g=>'<div class="summary-line" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed rgba(255,255,255,.12)"><span style="display:flex;align-items:center;gap:6px">'+teamBadge(g.away,24)+'<span class="muted">@</span>'+teamBadge(g.home,24)+'<span style="font-size:13px">'+esc(teamNick(g.away))+' @ '+esc(teamNick(g.home))+'</span>'+(gameMoved(g)?' ⚠️':'')+(g.neutralSite?' 🌍':'')+'</span><span class="muted" style="font-size:11px;white-space:nowrap;text-align:right">'+esc(formatKickoff(g.kickoff))+(gameLocked(g)?' 🔒':'')+'</span></div>').join('');
+      c.appendChild(block);
+    }
+    host.appendChild(c);
+  }
+
+  function renderRules(host){
+    const c=document.createElement('div'); c.className='card';
+    c.innerHTML='<h2>Rules</h2><p class="lead">This version is tailored for your NFL weekly prediction league.</p>'+
+      '<div class="lbrow"><div class="rank">6</div><div class="nm">Correct winner <small>and correct margin bracket</small></div></div>'+
+      '<div class="lbrow"><div class="rank">3</div><div class="nm">Correct winner only</div></div>'+
+      '<div class="lbrow"><div class="rank">0</div><div class="nm">Wrong result, or a tied game</div></div>'+
+      '<div class="lbrow"><div class="rank">5</div><div class="nm">AFC champion<small>season lock</small></div></div>'+
+      '<div class="lbrow"><div class="rank">5</div><div class="nm">NFC champion<small>season lock</small></div></div>'+
+      '<div class="lbrow"><div class="rank">5</div><div class="nm">Super Bowl winner<small>must be selected from your AFC/NFC picks</small></div></div>'+
+      '<p class="tiny"><b>Margin brackets:</b> 1–3 (field goal), 4–8 (one score), 9–16 (two scores), 17+ (blowout).</p>'+
+      '<p class="tiny"><b>Ties:</b> if an NFL game ends level, no winner pick scores for that game.</p>'+
+      '<p class="tiny"><b>Locks:</b> every game locks at its own kickoff (shown in UK time). Nothing else locks it — so you can pick as far ahead as you like, even the whole season on day one. A game you have not picked before kickoff simply scores nothing.</p>'+
+      '<p class="tiny"><b>Season winner:</b> the league table runs all season — most points at the end wins. There is also a winner each week, so there is always something to play for.</p>'+
+      '<p class="tiny"><b>Season locks:</b> your AFC / NFC / Super Bowl picks lock when the season kicks off.</p>'+
+      '<p class="tiny"><b>⚠️ moved:</b> the NFL sometimes moves kickoff times. A game whose time has changed since it was first published is flagged.</p>';
+    host.appendChild(c);
+  }
+
+  function openGameReveal(game, type){
+    const rows=Object.values(LG.players||{}).map(pl=>{
+      const p = type==='week' ? (pl.pred?.weeks?.[game.id]||{}) : (pl.pred?.playoffs?.[game.id]||{});
+      const act=actualResultFromGame(game); const pts=act?scoreGame(p,act):null;
+      return {name:pl.name, winner:p.winner?teamName(p.winner):'—', margin:p.margin?displayMarginLabel(p.margin):'—', pts:pts};
+    }).sort((a,b)=>(b.pts||0)-(a.pts||0));
+    const overlay=document.createElement('div'); overlay.className='overlay'; overlay.id='overlay';
+    overlay.innerHTML='<div class="card" style="max-width:520px;width:100%"><h2>'+esc(gameLabel(game))+'</h2><p class="lead">All picks for '+esc(game.id)+'.</p>'+rows.map(r=>'<div class="lbrow"><div class="rank">'+(r.winner&&r.winner!=='—'?teamBadge(r.winner,28):'?')+'</div><div class="nm">'+esc(r.name)+'<small>'+esc(r.margin)+'</small></div><div class="sc" style="font-size:16px">'+(r.pts==null?'—':r.pts)+'</div></div>').join('')+'<button class="btn btn-ghost" id="closeOv">Close</button></div>';
+    document.body.appendChild(overlay);
+    overlay.querySelector('#closeOv').onclick=()=>overlay.remove();
+  }
+
+  function displayMarginLabel(v){ return (MARGIN_OPTIONS.find(m=>m.value===v)||{}).label || v || '—'; }
+  function formatDateTime(v){ if(!v) return 'TBC'; const d=new Date(v); return d.toLocaleString('en-GB',{timeZone:'Europe/London', weekday:'short', day:'numeric', month:'short', hour:'numeric', minute:'2-digit'}); }
+  // Kickoffs are stored UTC; everyone here is in the UK, so always show UK time.
+  // Europe/London handles BST/GMT automatically.
+  function formatKickoff(iso){ return formatDateTime(iso) + ' UK'; }
+  function timeUntil(ms){
+    if(ms==null) return '';
+    let s=Math.max(0, Math.floor((ms-Date.now())/1000));
+    const d=Math.floor(s/86400); s-=d*86400;
+    const h=Math.floor(s/3600);  s-=h*3600;
+    const m=Math.floor(s/60);
+    if(d>0) return d+'d '+h+'h';
+    if(h>0) return h+'h '+m+'m';
+    return m+'m';
+  }
+
+  document.getElementById('syncBtn').onclick=async()=>{ try{ await loadGameData(); render(); toast('Data refreshed'); } catch(e){ toast('Refresh failed'); } };
+  document.getElementById('leaveBtn').onclick=()=>{
+    const yes=confirm('Leave this league on this device?');
+    if(!yes) return;
+    memberships=memberships.filter(m=>m.leagueId!==local.leagueId);
+    local={leagueId:'',playerId:'',isScorer:false}; saveLocal();
+    if(unsubLeague) unsubLeague(); if(unsubPlayers) unsubPlayers(); LG=null; render();
+  };
+
+  // ===== SCORER BOOTSTRAP ==================================================
+  // The league has to be created once. There's no create form (invite-only),
+  // so it's behind a URL parameter that only Richard knows:
+  //     ...?setup=1
+  // Whoever creates the league becomes scorerUid and therefore the scorer.
+  // Do this ONCE, after the Firestore rules are deployed. Step 5 replaces this
+  // with a proper Manage Players screen.
+  function renderSetup(app){
+    const c=document.createElement('div'); c.className='card';
+    c.innerHTML='<h2>🔧 Create the league</h2>'+
+      '<p class="lead">One-off setup. You become the scorer — the only person who can enter official season results.</p>'+
+      '<label class="fld">League name</label><input class="txt" id="newLeague" value="Hit Paydirt NFL League"/>'+
+      '<label class="fld">Your name</label><input class="txt" id="newScorer"/>'+
+      '<button class="btn btn-green" id="doCreate">Create league</button>'+
+      '<p class="tiny" style="margin-top:10px">If a league already exists, don\'t do this again — you\'ll create a second, empty one.</p>';
+    app.innerHTML=''; app.appendChild(c);
+    c.querySelector('#doCreate').onclick=async()=>{
+      const nm=c.querySelector('#newLeague').value.trim();
+      const sc=c.querySelector('#newScorer').value.trim();
+      if(!nm||!sc){ toast('Fill in both fields'); return; }
+      try{
+        await createLeague(nm, sc);
+        await listenLeague();
+        history.replaceState(null,'',location.pathname); // drop ?setup=1
+        toast('League created — code '+local.leagueId);
+        render();
+      }catch(e){ toast(e.message||'Could not create league'); }
+    };
+  }
+
+  // Someone opened a personal join link: ?lg=CODE&p=PLAYERID
+  async function handleClaimLink(app, leagueId, playerId){
+    app.innerHTML='<div class="card"><h2>Joining…</h2><p class="lead">Setting up your link on this device.</p></div>';
+    try{
+      const info=await claimPlayer(leagueId, playerId);
+      await listenLeague();
+      // NOTE: we deliberately KEEP ?lg=&p= in the address bar. That way, if the
+      // player bookmarks the page or adds it to their home screen, the saved
+      // link still carries their identity and always reopens their own entry -
+      // even on a fresh device or an iOS home-screen app with its own storage.
+      // (An earlier version stripped the query, which broke exactly that.)
+      saveLocal();
+      toast('Welcome, '+(info.name||'player')+'!');
+      render();
+    }catch(e){
+      app.innerHTML='<div class="card"><h2>That link didn’t work</h2>'+
+        '<p class="lead">'+esc(e.message||'Unknown error')+'</p>'+
+        '<p class="tiny">Ask Richard to re-send your personal link.</p></div>';
+    }
+  }
+
+  (async function boot(){
+    const app=document.getElementById('app');
+    try{
+      await loadGameData();
+      ui.week=currentPlayableWeek();
+    }catch(e){
+      app.innerHTML='<div class="card"><h2>Could not load the schedule</h2>'+
+        '<p class="lead">The app could not read its data files. If you have just set this up, check that <b>data/season.json</b> and <b>data/'+SEASON_YEAR+'/week-01.json</b> exist in the repo and that GitHub Pages has finished publishing.</p>'+
+        '<p class="tiny">Technical detail: '+esc(e.message||String(e))+'</p></div>';
+      return;
+    }
+
+    const q=new URLSearchParams(location.search);
+    const claimLg=q.get('lg'), claimP=q.get('p');
+
+    // A personal join link. If this device already owns that player (e.g. the
+    // player bookmarked their link and is just reopening), go straight in with
+    // no "Joining..." flash. Otherwise run the claim.
+    if(claimLg && claimP){
+      const known = memberships.find(m=>m.leagueId===claimLg && m.playerId===claimP);
+      if(known){
+        local={leagueId:claimLg, playerId:claimP, isScorer:known.isScorer};
+        saveLocal();
+        try{ await listenLeague(); }catch(e){ toast(e.message); }
+        render();
+      } else {
+        await handleClaimLink(app, claimLg, claimP);
+      }
+      return;
+    }
+
+    if(local.leagueId){ try{ await listenLeague(); }catch(e){ toast(e.message); } }
+
+    if(q.get('setup')==='1' && !local.leagueId){
+      render(); renderSetup(app); return;
+    }
+    render();
+  })();
+  </script>
 </body>
 </html>
