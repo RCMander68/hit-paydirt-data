@@ -526,7 +526,12 @@ async function renderPicks(idx){
     // locked -> list each player's pick (and points if the match has a result)
     let rows;
     if(!players.length){
-      rows = `<div class="result-row"><span class="nopick">No players have joined yet.</span></div>`;
+      // If Firebase is configured, an empty list here means it's still loading
+      // (or auth not settled yet) — don't alarm people with "no one joined".
+      const msg = fbConfigured()
+        ? "Loading players… pull down to refresh if this persists."
+        : "No players have joined yet.";
+      rows = `<div class="pick-row"><span class="nopick" style="color:var(--mist-2)">${msg}</span></div>`;
     } else {
       rows = players.map(p=>{
         const pk = (p.picks?.weekly?.[gwKey]||{})[m.fixtureId];
@@ -817,11 +822,13 @@ function fbSavePicks(){
 
 // Load every player's record (for the league table + picks reveal).
 async function fbLoadPlayers(){
-  if(!FB.ready || !FB.leagueId) return [];
+  if(!FB.ready || !FB.leagueId) return APP.playersCache || [];
   try{
     const snap = await FB.db.collection("epl_leagues").doc(FB.leagueId).collection("players").get();
-    return snap.docs.map(d=>({ playerId:d.id, ...d.data() }));
-  }catch(e){ console.warn("Load players failed:",e); return []; }
+    const list = snap.docs.map(d=>({ playerId:d.id, ...d.data() }));
+    if(list.length) APP.playersCache = list;   // remember for tabs that render before a fetch completes
+    return list;
+  }catch(e){ console.warn("Load players failed:",e); return APP.playersCache || []; }
 }
 
 /* ---- Scorer tools: create league + provision players ------------------- */
@@ -1067,15 +1074,16 @@ function _persistTables(){ try{ localStorage.setItem("matchday_tables", JSON.str
 
 // ===== tabs + init =======================================================
 const rendered={};
-function show(name){
+const LIVE_VIEWS = new Set(["league","picks","results","tables"]);
+function show(name, force){
   document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.view===name));
   document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id==="view-"+name));
-  if(!rendered[name]){
+  if(force || LIVE_VIEWS.has(name) || !rendered[name]){
     ({season:renderSeasonPicks,league:renderLeague,results:()=>renderResults(currentIdx()),today:renderToday,
       tables:renderTables,picks:()=>renderPicks(currentIdx()),help:renderHelp}[name]||(()=>{}))();
     rendered[name]=true;
   }
-  window.scrollTo({top:0,behavior:"smooth"});
+  if(!force) window.scrollTo({top:0,behavior:"smooth"});
 }
 function currentIdx(){ const wk=currentWeek(); return Math.max(0,APP.weeks.indexOf(wk)); }
 
@@ -1127,6 +1135,15 @@ async function init(){
   }
   renderSeasonPicks();
   renderPredict();
+  // Pre-load the player list into cache so League/Picks never render empty due to
+  // Firebase auth still settling. Then refresh whatever view is showing.
+  if(FB.ready && FB.leagueId){
+    try{
+      await fbLoadPlayers();               // populates APP.playersCache
+      const active = document.querySelector(".view.active")?.id?.replace("view-","");
+      if(active) show(active, true);       // re-render current tab with players loaded
+    }catch(e){}
+  }
 }
 init();
 </script>
