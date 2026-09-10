@@ -1,16 +1,16 @@
 {
   "week": 1,
   "season": 2026,
-  "updated": "2026-08-20T08:21:52Z",
+  "updated": "2026-09-10T12:24:45Z",
   "games": [
     {
       "id": "401872656",
       "kickoff": "2026-09-10T00:20Z",
       "home": "SEA",
       "away": "NE",
-      "homeScore": null,
-      "awayScore": null,
-      "status": "scheduled",
+      "homeScore": 13,
+      "awayScore": 10,
+      "status": "final",
       "venue": "Lumen Field",
       "neutralSite": false,
       "tbdFlex": false
