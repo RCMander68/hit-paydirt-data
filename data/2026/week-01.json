@@ -1,7 +1,7 @@
 {
   "week": 1,
   "season": 2026,
-  "updated": "2026-09-10T12:24:45Z",
+  "updated": "2026-09-11T12:41:54Z",
   "games": [
     {
       "id": "401872656",
@@ -20,9 +20,9 @@
       "kickoff": "2026-09-11T00:35Z",
       "home": "LAR",
       "away": "SF",
-      "homeScore": null,
-      "awayScore": null,
-      "status": "scheduled",
+      "homeScore": 7,
+      "awayScore": 27,
+      "status": "final",
       "venue": "Melbourne Cricket Ground",
       "neutralSite": true,
       "tbdFlex": false
