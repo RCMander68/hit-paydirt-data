@@ -1,7 +1,7 @@
 {
   "week": 1,
   "season": 2026,
-  "updated": "2026-09-13T23:48:35Z",
+  "updated": "2026-09-14T05:51:05Z",
   "games": [
     {
       "id": "401872656",
@@ -176,9 +176,9 @@
       "kickoff": "2026-09-14T00:20Z",
       "home": "NYG",
       "away": "DAL",
-      "homeScore": null,
-      "awayScore": null,
-      "status": "scheduled",
+      "homeScore": 28,
+      "awayScore": 20,
+      "status": "final",
       "venue": "MetLife Stadium",
       "neutralSite": false,
       "tbdFlex": false
