@@ -1,7 +1,7 @@
 {
   "week": 1,
   "season": 2026,
-  "updated": "2026-09-14T05:51:05Z",
+  "updated": "2026-09-15T13:01:11Z",
   "games": [
     {
       "id": "401872656",
@@ -188,9 +188,9 @@
       "kickoff": "2026-09-15T00:15Z",
       "home": "KC",
       "away": "DEN",
-      "homeScore": null,
-      "awayScore": null,
-      "status": "scheduled",
+      "homeScore": 31,
+      "awayScore": 10,
+      "status": "final",
       "venue": "Arrowhead Stadium",
       "neutralSite": false,
       "tbdFlex": false
