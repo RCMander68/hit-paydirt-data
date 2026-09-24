@@ -36,6 +36,12 @@ ESPN ENDPOINT (undocumented, unofficial, free)
   Expect this to break roughly once a season. When it does, the validation
   error will say which check failed - that's the starting point for a fix.
 
+  NOTE ON --auto: when you pin &week=N, ESPN echoes N back in the payload's
+  week.number field. So to discover the *actual* current week we must call the
+  scoreboard with NO week pinned (see fetch_current_week_number below). The old
+  code probed week 1 and read week.number off it, which always returned 1 -
+  that's why --auto silently stuck on week 1 once the season moved on.
+
 USAGE
   python3 scripts/fetch_results.py --weeks 1 2 3     # specific weeks
   python3 scripts/fetch_results.py --auto            # current + previous week
@@ -63,6 +69,13 @@ TOTAL_WEEKS = 18
 BASE_URL = (
     "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard"
     "?dates={year}&seasontype={stype}&week={week}"
+)
+
+# Same endpoint but with NO week pinned. ESPN returns whatever week it
+# currently considers active, which is what --auto needs.
+CURRENT_WEEK_URL = (
+    "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard"
+    "?dates={year}&seasontype={stype}"
 )
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -131,6 +144,42 @@ def fetch_week(week, retries=3, timeout=30):
                 time.sleep(2 * attempt)
             continue
     raise ValidationError(f"Week {week}: network failed after {retries} tries: {last_err}")
+
+
+def fetch_current_week_number(retries=3, timeout=30):
+    """
+    Discover the week ESPN currently considers active.
+
+    Critically, this calls the scoreboard WITHOUT pinning &week=N. If you pin a
+    week, ESPN just echoes that number back in week.number, so the only way to
+    learn the real current week is to omit it. Returns an int, or None if the
+    feed can't be read (caller then aborts --auto rather than guessing).
+    """
+    url = CURRENT_WEEK_URL.format(year=SEASON_YEAR, stype=SEASON_TYPE_REGULAR)
+    last_err = None
+    for attempt in range(1, retries + 1):
+        try:
+            req = urllib.request.Request(
+                url,
+                headers={
+                    "User-Agent": "Mozilla/5.0 (compatible; HitPaydirtLeague/1.0)",
+                    "Accept": "application/json",
+                },
+            )
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                if resp.status != 200:
+                    raise ValidationError(f"current-week probe: HTTP {resp.status}")
+                payload = json.loads(resp.read().decode("utf-8"))
+            num = (payload.get("week") or {}).get("number")
+            return int(num) if num else None
+        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError,
+                ValueError, TypeError) as e:
+            last_err = e
+            if attempt < retries:
+                time.sleep(2 * attempt)
+            continue
+    print(f"[auto] couldn't determine current week: {last_err}", file=sys.stderr)
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -401,14 +450,6 @@ def content_changed(new, old):
     return new.get("games") != old.get("games")
 
 
-def current_week_guess(payload):
-    """ESPN tells us which week it thinks it is."""
-    try:
-        return int((payload.get("week") or {}).get("number"))
-    except (TypeError, ValueError):
-        return None
-
-
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -429,9 +470,14 @@ def main():
     elif args.weeks:
         weeks = args.weeks
     else:
-        probe = fetch_week(1)
-        cur = current_week_guess(probe) or 1
-        weeks = sorted({max(1, cur - 1), cur})
+        # --auto: ask ESPN (with no week pinned) which week is current, then
+        # fetch that week plus the previous one to catch late corrections.
+        cur = fetch_current_week_number()
+        if cur is None:
+            print("ERROR: --auto could not determine the current week. "
+                  "Re-run with --weeks N to specify it by hand.", file=sys.stderr)
+            return 1
+        weeks = sorted({w for w in (cur - 1, cur) if 1 <= w <= TOTAL_WEEKS})
         print(f"[auto] ESPN reports current week {cur} -> fetching {weeks}")
 
     for w in weeks:
