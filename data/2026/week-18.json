@@ -1,7 +1,7 @@
 {
   "week": 18,
   "season": 2026,
-  "updated": "2026-07-17T10:13:03Z",
+  "updated": "2026-09-25T13:25:34Z",
   "games": [
     {
       "id": "401873172",
@@ -83,7 +83,7 @@
       "homeScore": null,
       "awayScore": null,
       "status": "scheduled",
-      "venue": "GEHA Field at Arrowhead Stadium",
+      "venue": "Arrowhead Stadium",
       "neutralSite": false,
       "tbdFlex": true
     },
@@ -191,7 +191,7 @@
       "homeScore": null,
       "awayScore": null,
       "status": "scheduled",
-      "venue": "NRG Stadium",
+      "venue": "Reliant Stadium",
       "neutralSite": false,
       "tbdFlex": true
     }
