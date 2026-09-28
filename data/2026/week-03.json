@@ -1,7 +1,7 @@
 {
   "week": 3,
   "season": 2026,
-  "updated": "2026-09-28T00:10:14Z",
+  "updated": "2026-09-28T06:20:59Z",
   "games": [
     {
       "id": "401872948",
@@ -176,9 +176,9 @@
       "kickoff": "2026-09-28T00:20Z",
       "home": "DEN",
       "away": "LAR",
-      "homeScore": null,
-      "awayScore": null,
-      "status": "scheduled",
+      "homeScore": 30,
+      "awayScore": 26,
+      "status": "final",
       "venue": "Empower Field at Mile High",
       "neutralSite": false,
       "tbdFlex": false
