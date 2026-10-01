@@ -1,7 +1,7 @@
 {
   "week": 3,
   "season": 2026,
-  "updated": "2026-09-28T06:20:59Z",
+  "updated": "2026-10-01T14:51:52Z",
   "games": [
     {
       "id": "401872948",
@@ -188,9 +188,9 @@
       "kickoff": "2026-09-29T00:15Z",
       "home": "CHI",
       "away": "PHI",
-      "homeScore": null,
-      "awayScore": null,
-      "status": "scheduled",
+      "homeScore": 27,
+      "awayScore": 7,
+      "status": "final",
       "venue": "Soldier Field",
       "neutralSite": false,
       "tbdFlex": false
