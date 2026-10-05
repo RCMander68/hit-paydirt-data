@@ -1,7 +1,7 @@
 {
   "week": 4,
   "season": 2026,
-  "updated": "2026-10-05T00:20:26Z",
+  "updated": "2026-10-05T06:34:54Z",
   "games": [
     {
       "id": "401872964",
@@ -176,9 +176,9 @@
       "kickoff": "2026-10-05T00:20Z",
       "home": "CAR",
       "away": "DET",
-      "homeScore": null,
-      "awayScore": null,
-      "status": "scheduled",
+      "homeScore": 32,
+      "awayScore": 26,
+      "status": "final",
       "venue": "Bank of America Stadium",
       "neutralSite": false,
       "tbdFlex": false
