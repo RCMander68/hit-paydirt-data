@@ -1,7 +1,7 @@
 {
   "week": 4,
   "season": 2026,
-  "updated": "2026-10-05T06:34:54Z",
+  "updated": "2026-10-08T14:59:37Z",
   "games": [
     {
       "id": "401872964",
@@ -188,9 +188,9 @@
       "kickoff": "2026-10-06T00:15Z",
       "home": "NO",
       "away": "ATL",
-      "homeScore": null,
-      "awayScore": null,
-      "status": "scheduled",
+      "homeScore": 24,
+      "awayScore": 45,
+      "status": "final",
       "venue": "Caesars Superdome",
       "neutralSite": false,
       "tbdFlex": false
