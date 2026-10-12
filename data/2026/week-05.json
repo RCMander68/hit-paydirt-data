@@ -1,7 +1,7 @@
 {
   "week": 5,
   "season": 2026,
-  "updated": "2026-10-12T00:52:16Z",
+  "updated": "2026-10-12T07:00:06Z",
   "games": [
     {
       "id": "401872980",
@@ -165,9 +165,9 @@
       "kickoff": "2026-10-12T00:20Z",
       "home": "ATL",
       "away": "BAL",
-      "homeScore": null,
-      "awayScore": null,
-      "status": "in",
+      "homeScore": 23,
+      "awayScore": 30,
+      "status": "final",
       "venue": "Mercedes-Benz Stadium",
       "neutralSite": false,
       "tbdFlex": false
