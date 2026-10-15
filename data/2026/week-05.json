@@ -1,7 +1,7 @@
 {
   "week": 5,
   "season": 2026,
-  "updated": "2026-10-12T07:00:06Z",
+  "updated": "2026-10-15T12:54:30Z",
   "games": [
     {
       "id": "401872980",
@@ -177,9 +177,9 @@
       "kickoff": "2026-10-13T00:15Z",
       "home": "LAR",
       "away": "BUF",
-      "homeScore": null,
-      "awayScore": null,
-      "status": "scheduled",
+      "homeScore": 34,
+      "awayScore": 37,
+      "status": "final",
       "venue": "SoFi Stadium",
       "neutralSite": false,
       "tbdFlex": false
