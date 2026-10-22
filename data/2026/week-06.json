@@ -1,7 +1,7 @@
 {
   "week": 6,
   "season": 2026,
-  "updated": "2026-10-19T05:46:51Z",
+  "updated": "2026-10-22T13:14:42Z",
   "games": [
     {
       "id": "401872995",
@@ -164,9 +164,9 @@
       "kickoff": "2026-10-20T00:15Z",
       "home": "SF",
       "away": "WSH",
-      "homeScore": null,
-      "awayScore": null,
-      "status": "scheduled",
+      "homeScore": 23,
+      "awayScore": 17,
+      "status": "final",
       "venue": "Levi's Stadium",
       "neutralSite": false,
       "tbdFlex": false

@@ -1,7 +1,7 @@
 {
   "week": 7,
   "season": 2026,
-  "updated": "2026-07-17T10:09:57Z",
+  "updated": "2026-10-22T13:14:43Z",
   "games": [
     {
       "id": "401873010",
@@ -83,7 +83,7 @@
       "homeScore": null,
       "awayScore": null,
       "status": "scheduled",
-      "venue": "NRG Stadium",
+      "venue": "Reliant Stadium",
       "neutralSite": false,
       "tbdFlex": false
     },
