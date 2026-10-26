@@ -1,7 +1,7 @@
 {
   "week": 7,
   "season": 2026,
-  "updated": "2026-10-25T23:41:32Z",
+  "updated": "2026-10-26T05:47:52Z",
   "games": [
     {
       "id": "401873010",
@@ -152,9 +152,9 @@
       "kickoff": "2026-10-26T00:20Z",
       "home": "SEA",
       "away": "KC",
-      "homeScore": null,
-      "awayScore": null,
-      "status": "scheduled",
+      "homeScore": 20,
+      "awayScore": 3,
+      "status": "final",
       "venue": "Lumen Field",
       "neutralSite": false,
       "tbdFlex": false
