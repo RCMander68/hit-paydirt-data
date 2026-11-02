@@ -1,7 +1,7 @@
 {
   "week": 8,
   "season": 2026,
-  "updated": "2026-11-02T01:08:30Z",
+  "updated": "2026-11-02T07:18:21Z",
   "games": [
     {
       "id": "401873023",
@@ -152,9 +152,9 @@
       "kickoff": "2026-11-02T01:20Z",
       "home": "WSH",
       "away": "PHI",
-      "homeScore": null,
-      "awayScore": null,
-      "status": "scheduled",
+      "homeScore": 27,
+      "awayScore": 10,
+      "status": "final",
       "venue": "Northwest Stadium",
       "neutralSite": false,
       "tbdFlex": false
