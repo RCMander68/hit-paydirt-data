@@ -1,7 +1,7 @@
 {
   "week": 8,
   "season": 2026,
-  "updated": "2026-11-02T07:18:21Z",
+  "updated": "2026-11-05T15:51:21Z",
   "games": [
     {
       "id": "401873023",
@@ -164,9 +164,9 @@
       "kickoff": "2026-11-03T01:15Z",
       "home": "SEA",
       "away": "CHI",
-      "homeScore": null,
-      "awayScore": null,
-      "status": "scheduled",
+      "homeScore": 17,
+      "awayScore": 34,
+      "status": "final",
       "venue": "Lumen Field",
       "neutralSite": false,
       "tbdFlex": false

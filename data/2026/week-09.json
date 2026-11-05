@@ -1,7 +1,7 @@
 {
   "week": 9,
   "season": 2026,
-  "updated": "2026-07-17T10:09:59Z",
+  "updated": "2026-11-05T15:51:22Z",
   "games": [
     {
       "id": "401873037",
@@ -107,7 +107,7 @@
       "homeScore": null,
       "awayScore": null,
       "status": "scheduled",
-      "venue": "GEHA Field at Arrowhead Stadium",
+      "venue": "Arrowhead Stadium",
       "neutralSite": false,
       "tbdFlex": false
     },
@@ -125,7 +125,7 @@
     },
     {
       "id": "401873047",
-      "kickoff": "2026-11-08T21:05Z",
+      "kickoff": "2026-11-08T21:25Z",
       "home": "SF",
       "away": "LV",
       "homeScore": null,
@@ -133,7 +133,8 @@
       "status": "scheduled",
       "venue": "Levi's Stadium",
       "neutralSite": false,
-      "tbdFlex": false
+      "tbdFlex": false,
+      "movedFrom": "2026-11-08T21:05Z"
     },
     {
       "id": "401873048",
