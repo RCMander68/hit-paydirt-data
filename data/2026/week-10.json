@@ -1,7 +1,7 @@
 {
   "week": 10,
   "season": 2026,
-  "updated": "2026-11-16T01:29:24Z",
+  "updated": "2026-11-16T07:41:05Z",
   "games": [
     {
       "id": "401873052",
@@ -152,9 +152,9 @@
       "kickoff": "2026-11-16T01:20Z",
       "home": "CIN",
       "away": "PIT",
-      "homeScore": null,
-      "awayScore": null,
-      "status": "in",
+      "homeScore": 38,
+      "awayScore": 18,
+      "status": "final",
       "venue": "Paycor Stadium",
       "neutralSite": false,
       "tbdFlex": false
